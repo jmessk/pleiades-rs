@@ -7,8 +7,19 @@ pub struct UploadBlobBuilder {
     data: Vec<u8>,
 }
 
+impl UploadBlobBuilder {
+    const ENDPOINT: &'static str = "/data";
+}
+
 impl MECRMRequest for UploadBlobBuilder {
-    async fn send(&self, client: Arc<reqwest::Client>) -> Result<impl MECRMResponse> {
+    async fn send(self, client: Arc<reqwest::Client>) -> Result<UploadBlobResponse> {
+        let multipart = reqwest::multipart::Form::new()
+            .part("file", reqwest::multipart::Part::bytes(self.data).file_name("data"));
+
+        let response = client.post(Self::ENDPOINT)
+            .multipart(multipart).
+        
+        unimplemented!()
     }
 }
 
@@ -20,8 +31,4 @@ pub struct UploadBlobResponse {
     checksum: String,
 }
 
-impl UploadBlobResponse {
-    pub fn data_id(&self) -> &str {
-        &self.data_id
-    }
-}
+impl MECRMResponse for UploadBlobResponse {}
