@@ -1,14 +1,14 @@
 mod data;
-mod lambda;
-mod worker;
 mod job;
 mod kv;
+mod lambda;
+mod worker;
 
-enum BodyType {
-    Json,
-    Multipart,
+use anyhow::Result;
+use std::sync::Arc;
+
+trait MECRMRequest {
+    async fn send(&self, client: Arc<reqwest::Client>) -> Result<impl MECRMResponse>;
 }
 
-trait IntoBody {
-    fn into_body(self) -> reqwest::Body;
-}
+trait MECRMResponse {}

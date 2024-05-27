@@ -1,39 +1,26 @@
-use crate::api::IntoBody;
+use getset::Getters;
 
+use crate::api::*;
+
+#[derive(serde::Serialize)]
 pub struct UploadBlobBuilder {
     data: Vec<u8>,
 }
 
-impl UploadBlobBuilder {
-    pub fn new() -> Self {
-        Self { data: Vec::new() }
-    }
-
-    pub fn data(mut self, data: Vec<u8>) -> Self {
-        self.data = data;
-        self
-    }
-}
-
-impl IntoBody for UploadBlobBuilder {
-    fn into_body(self) -> reqwest::Body {
-        let input = reqwest::multipart::Form::new()
-            .part("data", reqwest::multipart::Part::bytes(self.data));
-        // reqwest::Body::from(input.stream())
-        reqwest::Client::new().post("url").multipart(input)
+impl MECRMRequest for UploadBlobBuilder {
+    async fn send(&self, client: Arc<reqwest::Client>) -> Result<impl MECRMResponse> {
     }
 }
 
 #[derive(serde::Deserialize)]
 pub struct UploadBlobResponse {
+    code: i32,
+    status: String,
     data_id: String,
+    checksum: String,
 }
 
 impl UploadBlobResponse {
-    pub fn new(data_id: String) -> Self {
-        Self { data_id }
-    }
-
     pub fn data_id(&self) -> &str {
         &self.data_id
     }
