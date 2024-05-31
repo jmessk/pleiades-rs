@@ -455,6 +455,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio 1.37.0",
+ "url",
 ]
 
 [[package]]

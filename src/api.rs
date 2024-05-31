@@ -9,7 +9,7 @@ use anyhow::Result;
 use std::sync::Arc;
 
 trait MECRMRequest {
-    async fn send(self, client: Arc<reqwest::Client>) -> Result<impl MECRMResponse>;
+    async fn send(self, client: Arc<reqwest::Client>, host: requ) -> Result<impl MECRMResponse>;
 }
 
 trait MECRMResponse {}
