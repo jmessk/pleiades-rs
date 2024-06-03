@@ -11,17 +11,17 @@ impl UploadBlobBuilder {
     const ENDPOINT: &'static str = "/data";
 }
 
-impl MECRMRequest for UploadBlobBuilder {
-    async fn send(self, client: Arc<reqwest::Client>, host: url::Url) -> Result<UploadBlobResponse> {
-        let multipart = reqwest::multipart::Form::new()
-            .part("file", reqwest::multipart::Part::bytes(self.data).file_name("data"));
+// impl MECRMRequest for UploadBlobBuilder {
+//     async fn send(self, client: Arc<reqwest::Client>, host: url::Url) -> Result<UploadBlobResponse> {
+//         let multipart = reqwest::multipart::Form::new()
+//             .part("file", reqwest::multipart::Part::bytes(self.data).file_name("data"));
 
-        let response = client.post(Self::ENDPOINT)
-            .multipart(multipart).
+//         let response = client.post(Self::ENDPOINT)
+//             .multipart(multipart);
 
-        unimplemented!()
-    }
-}
+//         unimplemented!()
+//     }
+// }
 
 #[derive(serde::Deserialize)]
 pub struct UploadBlobResponse {
