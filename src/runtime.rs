@@ -18,30 +18,35 @@ impl Runtime {
 }
 
 pub struct RuntimeBuilder {
-    inner: Runtime,
+    domain: Option<String>,
+    features: Option<Vec<String>>,
 }
 
 impl RuntimeBuilder {
     pub fn new() -> RuntimeBuilder {
         RuntimeBuilder {
-            inner: Runtime {
-                domain: None,
-                features: Vec::new(),
-            },
+            domain: None,
+            features: None,
         }
     }
 
     pub fn build(self) -> Runtime {
-        self.inner
+        Runtime {
+            domain: self.domain,
+            features: self.features.unwrap_or_default(),
+        }
     }
 
     pub fn domain(mut self, domain: impl Into<String>) -> RuntimeBuilder {
-        self.inner.domain = Some(domain.into());
+        self.domain = Some(domain.into());
         self
     }
 
     pub fn add(mut self, feature: impl Into<String>) -> RuntimeBuilder {
-        self.inner.features.push(feature.into());
+        self.features
+            .get_or_insert_with(Vec::new)
+            .push(feature.into());
+
         self
     }
 
@@ -50,7 +55,7 @@ impl RuntimeBuilder {
         T: IntoIterator<Item = U>,
         U: Into<String>,
     {
-        self.inner.features = features.into_iter().map(Into::into).collect();
+        self.features = Some(features.into_iter().map(Into::into).collect());
         self
     }
 }

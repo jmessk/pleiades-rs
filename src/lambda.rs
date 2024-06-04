@@ -4,9 +4,9 @@ use super::{blob::Blob, runtime::Runtime};
 use super::{MecrmObject, ObjectBuilder};
 
 pub struct Lambda {
-    id: Option<String>,
-    runtime: Option<Runtime>,
-    blob: Option<Blob>,
+    id: String,
+    runtime: Runtime,
+    blob: Blob,
 }
 
 impl MecrmObject for Lambda {
@@ -17,51 +17,55 @@ impl MecrmObject for Lambda {
 
 impl Lambda {
     pub fn id(&self) -> &str {
-        self.id.as_deref().unwrap()
+        &self.id
     }
 
     pub fn runtime(&self) -> &Runtime {
-        self.runtime.as_ref().unwrap()
+        &self.runtime
     }
 
     pub fn blob(&self) -> &Blob {
-        self.blob.as_ref().unwrap()
+        &self.blob
     }
 }
 
 struct LambdaBuilder {
-    inner: Lambda,
+    id: Option<String>,
+    runtime: Option<Runtime>,
+    blob: Option<Blob>,
 }
 
 impl ObjectBuilder for LambdaBuilder {
     fn new() -> LambdaBuilder {
         LambdaBuilder {
-            inner: Lambda {
-                id: None,
-                runtime: None,
-                blob: None,
-            },
+            id: None,
+            runtime: None,
+            blob: None,
         }
     }
 
     fn build(self) -> Result<Lambda> {
-        Ok(self.inner)
+        Ok(Lambda {
+            id: self.id.unwrap(),
+            runtime: self.runtime.unwrap(),
+            blob: self.blob.unwrap(),
+        })
     }
 }
 
 impl LambdaBuilder {
     pub fn id(mut self, id: impl Into<String>) -> LambdaBuilder {
-        self.inner.id = Some(id.into());
+        self.id = Some(id.into());
         self
     }
 
     pub fn runtime(mut self, runtime: Runtime) -> LambdaBuilder {
-        self.inner.runtime = Some(runtime);
+        self.runtime = Some(runtime);
         self
     }
 
     pub fn blob(mut self, blob: Blob) -> LambdaBuilder {
-        self.inner.blob = Some(blob);
+        self.blob = Some(blob);
         self
     }
 }

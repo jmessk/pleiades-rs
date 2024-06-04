@@ -3,7 +3,7 @@ use anyhow::Result;
 use super::{MecrmObject, ObjectBuilder};
 
 pub struct Blob {
-    id: Option<String>,
+    id: String,
     data: Option<Vec<u8>>,
 }
 
@@ -14,45 +14,44 @@ impl MecrmObject for Blob {
 }
 
 impl Blob {
-    fn id(&self) -> &str {
-        self.id.as_deref().unwrap()
+    pub fn id(&self) -> &str {
+        &self.id
     }
 
     pub fn data(&self) -> &[u8] {
-        self.data.as_deref().unwrap()
+        self.data.as_ref().unwrap()
     }
 }
 
 struct BlobBuilder {
-    inner: Blob,
+    id: Option<String>,
+    data: Option<Vec<u8>>,
 }
 
 impl ObjectBuilder for BlobBuilder {
     fn new() -> BlobBuilder {
         BlobBuilder {
-            inner: Blob {
-                id: None,
-                data: None,
-            },
+            id: None,
+            data: None,
         }
     }
 
     fn build(self) -> Result<impl MecrmObject> {
         Ok(Blob {
-            id: Some(self.inner.id.unwrap()),
-            data: Some(self.inner.data.unwrap()),
+            id: self.id.unwrap(),
+            data: self.data,
         })
     }
 }
 
 impl BlobBuilder {
     pub fn id(mut self, id: impl Into<String>) -> BlobBuilder {
-        self.inner.id = Some(id.into());
+        self.id = Some(id.into());
         self
     }
 
     pub fn data(mut self, data: impl Into<Vec<u8>>) -> BlobBuilder {
-        self.inner.data = Some(data.into());
+        self.data = Some(data.into());
         self
     }
 }

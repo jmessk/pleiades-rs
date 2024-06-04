@@ -6,15 +6,16 @@ mod lambda;
 mod worker;
 
 use anyhow::Result;
-use reqwest::IntoUrl;
 use std::sync::Arc;
 
-trait MECRMRequest {
-    async fn send<U: IntoUrl>(
+trait MecrmRequest {
+    async fn request(
         self,
         client: Arc<reqwest::Client>,
-        host: U,
-    ) -> Result<impl MECRMResponse>;
+        host: url::Url,
+    ) -> Result<impl MecrmResponse>;
 }
 
-trait MECRMResponse {}
+trait MecrmResponse {
+    async fn from_response(response: reqwest::Response) -> Result<impl MecrmResponse>;
+}

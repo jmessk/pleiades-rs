@@ -13,12 +13,12 @@ pub use lambda::Lambda;
 pub use runtime::Runtime;
 // pub use worker::Worker;
 
-pub trait MecrmObject<'a> {
-    fn new() -> impl ObjectBuilder<'a>;
-    fn id() -> Option<&'a str>;
+pub trait MecrmObject {
+    fn new() -> impl ObjectBuilder;
+    // fn id() -> Option<&'a str>;
 }
 
-pub trait ObjectBuilder<'a> {
+pub trait ObjectBuilder {
     fn new() -> Self;
-    fn build(self) -> Result<impl MecrmObject<'a>>;
+    fn build(self) -> Result<impl MecrmObject>;
 }
