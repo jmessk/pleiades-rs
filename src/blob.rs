@@ -1,43 +1,51 @@
+use anyhow::Result;
+
+use super::{MecrmObject, ObjectBuilder};
+
 pub struct Blob {
     id: Option<String>,
     data: Option<Vec<u8>>,
 }
 
-impl Blob {
-    pub fn new() -> BlobBuilder {
+impl MecrmObject for Blob {
+    fn new() -> impl ObjectBuilder {
         BlobBuilder::new()
     }
+}
 
-    pub fn id(&self) -> &str {
-        self.id.as_deref()
+impl Blob {
+    fn id(&self) -> &str {
+        self.id.as_deref().unwrap()
     }
 
     pub fn data(&self) -> &[u8] {
-        self.data
+        self.data.as_deref().unwrap()
     }
 }
 
-pub struct BlobBuilder {
+struct BlobBuilder {
     inner: Blob,
 }
 
-impl BlobBuilder {
-    pub fn new() -> BlobBuilder {
+impl ObjectBuilder for BlobBuilder {
+    fn new() -> BlobBuilder {
         BlobBuilder {
             inner: Blob {
                 id: None,
                 data: None,
-            }
+            },
         }
     }
 
-    pub fn build(self) -> Blob {
-        Blob {
-            id: self.id.expect("id is required"),
-            data: self.data.expect("data is required"),
-        }
+    fn build(self) -> Result<impl MecrmObject> {
+        Ok(Blob {
+            id: Some(self.inner.id.unwrap()),
+            data: Some(self.inner.data.unwrap()),
+        })
     }
+}
 
+impl BlobBuilder {
     pub fn id(mut self, id: impl Into<String>) -> BlobBuilder {
         self.inner.id = Some(id.into());
         self

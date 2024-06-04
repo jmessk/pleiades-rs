@@ -1,17 +1,23 @@
 mod api;
 mod blob;
-mod runtime;
-mod lambda;
 mod job;
+mod lambda;
+mod runtime;
 mod worker;
 
+use anyhow::Result;
+
+pub use blob::Blob;
+pub use job::Job;
+pub use lambda::Lambda;
+pub use runtime::Runtime;
+// pub use worker::Worker;
+
 pub trait MecrmObject {
-    fn new() -> Self;
-    fn id(&self) -> &str;
+    fn new() -> impl ObjectBuilder;
 }
 
 pub trait ObjectBuilder {
     fn new() -> Self;
-    fn build(self) -> Self;
-    fn id(mut self, id: impl Into<String>) -> Self;
+    fn build(self) -> Result<impl MecrmObject>;
 }

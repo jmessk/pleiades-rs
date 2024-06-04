@@ -45,10 +45,11 @@ impl RuntimeBuilder {
         self
     }
 
-    pub fn features<T: IntoIterator<Item = impl Into<String>>>(
-        mut self,
-        features: T,
-    ) -> RuntimeBuilder {
+    pub fn features<T, U>(mut self, features: T) -> RuntimeBuilder
+    where
+        T: IntoIterator<Item = U>,
+        U: Into<String>,
+    {
         self.inner.features = features.into_iter().map(Into::into).collect();
         self
     }
