@@ -83,13 +83,21 @@ impl JobBuilder {
     }
 }
 
-pub struct RequesterJob {
+struct RequesterJob {
     inner: Job,
 }
 
 impl RequesterJob {
     pub fn is_done(&self) -> bool {
-        self.inner.output.is_some()
+        unimplemented!()
+    }
+
+    pub fn wait(self) -> WorkerJob {
+        WorkerJob { inner: self.inner }
+    }
+
+    pub fn output(self) -> Blob {
+        self.inner.output.unwrap()
     }
 }
 
@@ -98,10 +106,6 @@ pub struct WorkerJob {
 }
 
 impl WorkerJob {
-    // pub fn new() -> WorkerJobBuilder {
-    //     WorkerJobBuilder::new()
-    // }
-
     pub fn id(&self) -> &str {
         self.inner.id.as_deref().unwrap()
     }
@@ -113,7 +117,7 @@ impl WorkerJob {
     pub fn input(&self) -> &Blob {
         self.inner.input.as_ref().unwrap()
     }
-    
+
     pub fn finish(self, output: Blob) -> Job {
         Job {
             id: self.inner.id,
@@ -123,4 +127,3 @@ impl WorkerJob {
         }
     }
 }
-
