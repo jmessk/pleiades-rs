@@ -1,7 +1,7 @@
 use anyhow::{bail, Context, Result};
 use std::sync::Arc;
 
-use crate::api::{error::MecrmErrorResponse, MecrmRequest, MecrmResponse};
+use crate::api::{error::ErrorResponse, MecrmRequest, MecrmResponse};
 
 pub struct DataDownloadRequest {
     data_id: String,

@@ -1,43 +1,42 @@
 use anyhow::{bail, Context, Result};
 use std::sync::Arc;
 
-use crate::api::{error::MecrmErrorResponse, MecrmRequest, MecrmResponse};
+use crate::api::{error::ErrorResponse, ApiResult, MecrmRequest, MecrmResponse};
 
 pub struct DataUploadRequest {
     data: Vec<u8>,
 }
 
 impl DataUploadRequest {
-    const ENDPOINT: &'static str = "data";
-
     pub fn new(data: impl Into<Vec<u8>>) -> DataUploadRequest {
-        DataUploadRequest {
-            data: data.into(),
-        }
+        DataUploadRequest { data: data.into() }
     }
 }
 
-impl MecrmRequest for DataUploadRequest {
+impl MecrmRequest<DataUploadResponse> for DataUploadRequest {
+    fn endpoint(&self) -> url::Url {
+        url::Url::parse("data").unwrap()
+    }
+
     async fn request(
         self,
         client: Arc<reqwest::Client>,
         host: url::Url,
-    ) -> Result<DataUploadResponse> {
-        let multipart = reqwest::multipart::Form::new().part(
-            "file",
-            reqwest::multipart::Part::bytes(self.data).file_name("data"),
-        );
+    ) -> Result<ApiResult<DataUploadResponse>> {
+        let part = reqwest::multipart::Part::bytes(self.data).file_name("data");
+        let multipart = reqwest::multipart::Form::new().part("file", part);
 
         let response = client
-            .post(host.join(Self::ENDPOINT).unwrap())
+            .post(host.join(&self.endpoint()).unwrap())
             .multipart(multipart)
             .send()
             .await?;
 
-        match DataUploadResponse::from_response(response).await {
-            Ok(response) => Ok(response),
-            Err(_) => bail!("Failed to parse response"),
+        if let Ok(response) = ErrorResponse::from_response(response).await {
+            return Ok(ApiResult::Error(response));
         }
+
+
     }
 }
 
