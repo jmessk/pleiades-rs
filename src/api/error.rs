@@ -10,6 +10,8 @@ pub struct ErrorResponse {
 }
 
 impl MecrmResponse for ErrorResponse {
+    type Response = ErrorResponse;
+
     async fn from_response(response: reqwest::Response) -> Result<ErrorResponse> {
         response.json().await.context("Failed to parse response")
     }

@@ -8,22 +8,20 @@ mod worker;
 use anyhow::Result;
 use std::sync::Arc;
 
-trait MecrmRequest<T>
-where
-    T: MecrmResponse,
-{
-    fn endpoint(&self) -> url::Url;
-    async fn request(self, client: Arc<reqwest::Client>, host: url::Url) -> Result<ApiResult<T>>;
+trait MecrmRequest {
+    type Response: MecrmResponse;
+    async fn request(self, client: Arc<reqwest::Client>, host: url::Url) -> Result<Self::Response>;
 }
 
 trait MecrmResponse {
-    async fn from_response(response: reqwest::Response) -> Result<impl MecrmResponse>;
+    type Response: MecrmResponse;
+    async fn from_response(response: reqwest::Response) -> Result<Self::Response>;
 }
 
-pub enum ApiResult<T>
-where
-    T: MecrmResponse,
-{
-    Success(T),
-    Error(T),
-}
+// pub enum ApiResult<T>
+// where
+//     T: MecrmResponse,
+// {
+//     Success(T),
+//     Error(T),
+// }

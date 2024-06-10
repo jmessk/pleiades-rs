@@ -10,7 +10,9 @@ pub struct Lambda {
 }
 
 impl MecrmObject for Lambda {
-    fn new() -> impl ObjectBuilder {
+    type Builder = LambdaBuilder;
+
+    fn new() -> LambdaBuilder {
         LambdaBuilder::new()
     }
 }
@@ -36,6 +38,8 @@ struct LambdaBuilder {
 }
 
 impl ObjectBuilder for LambdaBuilder {
+    type Output = Lambda;
+
     fn new() -> LambdaBuilder {
         LambdaBuilder {
             id: None,

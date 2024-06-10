@@ -11,7 +11,9 @@ pub struct Job {
 }
 
 impl MecrmObject for Job {
-    fn new() -> impl ObjectBuilder {
+    type Builder = JobBuilder;
+
+    fn new() -> JobBuilder {
         JobBuilder::new()
     }
 }
@@ -42,6 +44,8 @@ struct JobBuilder {
 }
 
 impl ObjectBuilder for JobBuilder {
+    type Output = Job;
+
     fn new() -> JobBuilder {
         JobBuilder {
             id: None,
@@ -51,7 +55,7 @@ impl ObjectBuilder for JobBuilder {
         }
     }
 
-    fn build(self) -> Result<impl MecrmObject> {
+    fn build(self) -> Result<Job> {
         Ok(Job {
             id: self.id.unwrap(),
             lambda: self.lambda.unwrap(),

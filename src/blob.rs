@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context as _, Result};
 
 use super::{MecrmObject, ObjectBuilder};
 
@@ -8,7 +8,9 @@ pub struct Blob {
 }
 
 impl MecrmObject for Blob {
-    fn new() -> impl ObjectBuilder {
+    type Builder = BlobBuilder;
+
+    fn new() -> BlobBuilder {
         BlobBuilder::new()
     }
 }
@@ -18,8 +20,8 @@ impl Blob {
         &self.id
     }
 
-    pub fn data(&self) -> &[u8] {
-        self.data.as_ref().unwrap()
+    pub async fn data(&self) -> Result<&Vec<u8>> {
+        self.data.as_ref().context("Blob data is not set")
     }
 }
 
@@ -29,6 +31,8 @@ struct BlobBuilder {
 }
 
 impl ObjectBuilder for BlobBuilder {
+    type Output = Blob;
+
     fn new() -> BlobBuilder {
         BlobBuilder {
             id: None,
@@ -36,7 +40,7 @@ impl ObjectBuilder for BlobBuilder {
         }
     }
 
-    fn build(self) -> Result<impl MecrmObject> {
+    fn build(self) -> Result<Blob> {
         Ok(Blob {
             id: self.id.unwrap(),
             data: self.data,

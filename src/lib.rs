@@ -11,14 +11,17 @@ pub use blob::Blob;
 pub use job::Job;
 pub use lambda::Lambda;
 pub use runtime::Runtime;
-// pub use worker::Worker;
+pub use worker::Worker;
 
 pub trait MecrmObject {
-    fn new() -> impl ObjectBuilder;
-    // fn id() -> Option<&'a str>;
+    type Builder: ObjectBuilder<Output = Self>;
+
+    fn new() -> Self::Builder;
 }
 
 pub trait ObjectBuilder {
+    type Output: MecrmObject<Builder = Self>;
+
     fn new() -> Self;
-    fn build(self) -> Result<impl MecrmObject>;
+    fn build(self) -> Result<Self::Output>;
 }

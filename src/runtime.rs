@@ -1,3 +1,5 @@
+use anyhow::Result;
+
 pub struct Runtime {
     domain: Option<String>,
     features: Vec<String>,
@@ -30,11 +32,11 @@ impl RuntimeBuilder {
         }
     }
 
-    pub fn build(self) -> Runtime {
-        Runtime {
+    pub fn build(self) -> Result<Runtime> {
+        Ok(Runtime {
             domain: self.domain,
             features: self.features.unwrap_or_default(),
-        }
+        })
     }
 
     pub fn domain(mut self, domain: impl Into<String>) -> RuntimeBuilder {
