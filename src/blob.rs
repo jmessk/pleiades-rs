@@ -21,7 +21,6 @@ impl Blob {
 
 pub struct BlobBuilder {
     client: Client,
-    id: Option<String>,
     data: Option<Vec<u8>>,
 }
 
@@ -29,11 +28,7 @@ impl ObjectBuilder for BlobBuilder {
     type Output = Blob;
 
     fn new(client: Client) -> BlobBuilder {
-        BlobBuilder {
-            client,
-            id: None,
-            data: None,
-        }
+        BlobBuilder { client, data: None }
     }
 
     // fn id(self, id: impl Into<String>) -> Blob {
@@ -42,7 +37,7 @@ impl ObjectBuilder for BlobBuilder {
     //         data: None,
     //     }
     // }
-}   
+}
 
 impl BlobBuilder {
     pub fn data(mut self, data: impl Into<Vec<u8>>) -> BlobBuilder {
@@ -55,8 +50,10 @@ impl BlobBuilder {
             bail!("Blob data is not set");
         }
 
+        let id = "1234567890".to_string();
+
         Ok(Blob {
-            id: "1234567890".to_string(),
+            id,
             data: self.data,
         })
     }
