@@ -15,25 +15,21 @@ pub use lambda::Lambda;
 pub use runtime::Runtime;
 pub use worker::Worker;
 
-pub trait MecrmObject {
-    type Builder: ObjectBuilder<Output = Self>;
-
-    // fn new() -> Self::Builder;
-}
+pub trait MecrmObject {}
 
 pub trait ObjectBuilder {
-    type Output: MecrmObject<Builder = Self>;
+    type Output: MecrmObject;
 
-    // fn new() -> Self;
-    // fn build(self) -> Result<Self::Output>;
+    fn new(client: Client) -> Self;
+    // fn id(self, id: impl Into<String>) -> Self::Output;
 }
 
 pub struct Client {
     host: url::Url,
-    client: Arc<reqwest::Client>
+    client: Arc<reqwest::Client>,
 }
 
 pub struct ClientBuilder {
     host: Option<url::Url>,
-    client: Option<Arc<reqwest::Client>>
+    client: Option<Arc<reqwest::Client>>,
 }

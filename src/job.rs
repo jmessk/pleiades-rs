@@ -1,7 +1,7 @@
 use anyhow::Result;
 
 use super::{blob::Blob, lambda::Lambda};
-use super::{MecrmObject, ObjectBuilder};
+use super::{Client, MecrmObject, ObjectBuilder};
 
 pub struct Job {
     id: String,
@@ -10,13 +10,7 @@ pub struct Job {
     output: Option<Blob>,
 }
 
-impl MecrmObject for Job {
-    type Builder = JobBuilder;
-
-    fn new() -> JobBuilder {
-        JobBuilder::new()
-    }
-}
+impl MecrmObject for Job {}
 
 impl Job {
     pub fn id(&self) -> &str {
@@ -37,40 +31,24 @@ impl Job {
 }
 
 struct JobBuilder {
-    id: Option<String>,
+    client: Client,
     lambda: Option<Lambda>,
     input: Option<Blob>,
-    output: Option<Blob>,
 }
 
 impl ObjectBuilder for JobBuilder {
     type Output = Job;
 
-    fn new() -> JobBuilder {
+    fn new(client: Client) -> JobBuilder {
         JobBuilder {
-            id: None,
+            client,
             lambda: None,
             input: None,
-            output: None,
         }
-    }
-
-    fn build(self) -> Result<Job> {
-        Ok(Job {
-            id: self.id.unwrap(),
-            lambda: self.lambda.unwrap(),
-            input: self.input.unwrap(),
-            output: self.output,
-        })
     }
 }
 
 impl JobBuilder {
-    pub fn id(mut self, id: impl Into<String>) -> JobBuilder {
-        self.id = Some(id.into());
-        self
-    }
-
     pub fn lambda(mut self, lambda: Lambda) -> JobBuilder {
         self.lambda = Some(lambda);
         self
@@ -81,47 +59,29 @@ impl JobBuilder {
         self
     }
 
-    pub fn run(self) -> JobForRequester {
-        unimplemented!()
+    pub async fn run(self, status: String, timeout: u32) -> Result<RequesterJob> {
+        Ok(RequesterJob {
+            id: "1234567890".to_string(),
+            lambda: self.lambda.unwrap(),
+            input: self.input.unwrap(),
+            output: None,
+        })
     }
 }
 
-struct JobForRequester {
-    inner: Job,
+pub struct RequesterJob {
+    id: String,
+    lambda: Lambda,
+    input: Blob,
+    output: Option<Blob>,
 }
 
-impl JobForRequester {
-    pub fn is_done(&self) -> bool {
+impl RequesterJob {
+    pub async fn wait(self) -> Result<RequesterJob> {
         unimplemented!()
     }
 
-    pub fn wait(self) -> JobForWorker {
-        unimplemented!()
-    }
-
-    pub fn output(self) -> Blob {
-        unimplemented!()
-    }
-}
-
-pub struct JobForWorker {
-    inner: Job,
-}
-
-impl JobForWorker {
-    pub fn id(&self) -> &str {
-        self.inner.id()
-    }
-
-    pub fn lambda(&self) -> &Lambda {
-        self.inner.lambda()
-    }
-
-    pub fn input(&self) -> &Blob {
-        self.inner.input()
-    }
-
-    pub fn finish(self, output: Blob) -> Result<()> {
-        unimplemented!()
+    pub fn output(&self) -> &Blob {
+        self.output.as_ref().unwrap()
     }
 }

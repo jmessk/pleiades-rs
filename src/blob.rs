@@ -1,15 +1,13 @@
 use anyhow::{bail, Context as _, Result};
 
-use super::{MecrmObject, ObjectBuilder, Client};
+use super::{Client, MecrmObject, ObjectBuilder};
 
 pub struct Blob {
     id: String,
     data: Option<Vec<u8>>,
 }
 
-impl MecrmObject for Blob {
-    type Builder = BlobBuilder;
-}
+impl MecrmObject for Blob {}
 
 impl Blob {
     pub fn id(&self) -> &str {
@@ -29,18 +27,37 @@ pub struct BlobBuilder {
 
 impl ObjectBuilder for BlobBuilder {
     type Output = Blob;
-}
 
-impl BlobBuilder {
-    pub fn id(mut self, id: impl Into<String>) -> Blob {
-        Blob {
-            id: id.into(),
-            data: self.data,
+    fn new(client: Client) -> BlobBuilder {
+        BlobBuilder {
+            client,
+            id: None,
+            data: None,
         }
     }
 
+    // fn id(self, id: impl Into<String>) -> Blob {
+    //     Blob {
+    //         id: id.into(),
+    //         data: None,
+    //     }
+    // }
+}   
+
+impl BlobBuilder {
     pub fn data(mut self, data: impl Into<Vec<u8>>) -> BlobBuilder {
         self.data = Some(data.into());
         self
+    }
+
+    pub async fn post(self) -> Result<Blob> {
+        if self.data.is_none() {
+            bail!("Blob data is not set");
+        }
+
+        Ok(Blob {
+            id: "1234567890".to_string(),
+            data: self.data,
+        })
     }
 }

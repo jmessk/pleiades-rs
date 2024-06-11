@@ -1,7 +1,7 @@
-use anyhow::Result;
+use anyhow::{bail, Result};
 
 use super::{blob::Blob, runtime::Runtime};
-use super::{MecrmObject, ObjectBuilder};
+use super::{Client, MecrmObject, ObjectBuilder};
 
 pub struct Lambda {
     id: String,
@@ -9,13 +9,7 @@ pub struct Lambda {
     blob: Blob,
 }
 
-impl MecrmObject for Lambda {
-    type Builder = LambdaBuilder;
-
-    fn new() -> LambdaBuilder {
-        LambdaBuilder::new()
-    }
-}
+impl MecrmObject for Lambda {}
 
 impl Lambda {
     pub fn id(&self) -> &str {
@@ -31,7 +25,8 @@ impl Lambda {
     }
 }
 
-struct LambdaBuilder {
+pub struct LambdaBuilder {
+    client: Client,
     id: Option<String>,
     runtime: Option<Runtime>,
     blob: Option<Blob>,
@@ -40,29 +35,25 @@ struct LambdaBuilder {
 impl ObjectBuilder for LambdaBuilder {
     type Output = Lambda;
 
-    fn new() -> LambdaBuilder {
+    fn new(client: Client) -> LambdaBuilder {
         LambdaBuilder {
+            client,
             id: None,
             runtime: None,
             blob: None,
         }
     }
 
-    fn build(self) -> Result<Lambda> {
-        Ok(Lambda {
-            id: self.id.unwrap(),
-            runtime: self.runtime.unwrap(),
-            blob: self.blob.unwrap(),
-        })
-    }
+    // fn id(self, id: impl Into<String>) -> Lambda {
+    //     Lambda {
+    //         id: id.into(),
+    //         runtime: self.runtime.unwrap(),
+    //         blob: self.blob.unwrap(),
+    //     }
+    // }
 }
 
 impl LambdaBuilder {
-    pub fn id(mut self, id: impl Into<String>) -> LambdaBuilder {
-        self.id = Some(id.into());
-        self
-    }
-
     pub fn runtime(mut self, runtime: Runtime) -> LambdaBuilder {
         self.runtime = Some(runtime);
         self
@@ -71,5 +62,21 @@ impl LambdaBuilder {
     pub fn blob(mut self, blob: Blob) -> LambdaBuilder {
         self.blob = Some(blob);
         self
+    }
+
+    pub async fn post(self) -> Result<Lambda> {
+        if self.runtime.is_none() {
+            bail!("Lambda runtime is not set");
+        }
+
+        if self.blob.is_none() {
+            bail!("Lambda blob is not set");
+        }
+
+        Ok(Lambda {
+            id: "1234567890".to_string(),
+            runtime: self.runtime.unwrap(),
+            blob: self.blob.unwrap(),
+        })
     }
 }
