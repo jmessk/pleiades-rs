@@ -1,6 +1,6 @@
-use anyhow::{Context as _, Result};
+use anyhow::{bail, Context as _, Result};
 
-use super::{MecrmObject, ObjectBuilder};
+use super::{MecrmObject, ObjectBuilder, Client};
 
 pub struct Blob {
     id: String,
@@ -9,10 +9,6 @@ pub struct Blob {
 
 impl MecrmObject for Blob {
     type Builder = BlobBuilder;
-
-    fn new() -> BlobBuilder {
-        BlobBuilder::new()
-    }
 }
 
 impl Blob {
@@ -25,33 +21,22 @@ impl Blob {
     }
 }
 
-struct BlobBuilder {
+pub struct BlobBuilder {
+    client: Client,
     id: Option<String>,
     data: Option<Vec<u8>>,
 }
 
 impl ObjectBuilder for BlobBuilder {
     type Output = Blob;
-
-    fn new() -> BlobBuilder {
-        BlobBuilder {
-            id: None,
-            data: None,
-        }
-    }
-
-    fn build(self) -> Result<Blob> {
-        Ok(Blob {
-            id: self.id.unwrap(),
-            data: self.data,
-        })
-    }
 }
 
 impl BlobBuilder {
-    pub fn id(mut self, id: impl Into<String>) -> BlobBuilder {
-        self.id = Some(id.into());
-        self
+    pub fn id(mut self, id: impl Into<String>) -> Blob {
+        Blob {
+            id: id.into(),
+            data: self.data,
+        }
     }
 
     pub fn data(mut self, data: impl Into<Vec<u8>>) -> BlobBuilder {

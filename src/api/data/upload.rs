@@ -63,7 +63,7 @@ impl MecrmRequest for DataUploadRequest {
         if let Ok(response) = DataUploadResponse::from_response(response).await {
             Ok(response)
         } else {
-            anyhow::bail!("Failed to upload data")
+            bail!("Failed to upload data")
         }
     }
 }
