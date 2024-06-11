@@ -8,9 +8,11 @@ mod worker;
 use anyhow::Result;
 use std::sync::Arc;
 
+use crate::Client;
+
 trait MecrmRequest {
     type Response: MecrmResponse;
-    async fn request(self, client: Arc<reqwest::Client>, host: url::Url) -> Result<Self::Response>;
+    async fn send(self, client: Arc<Client>) -> Result<Self::Response>;
 }
 
 trait MecrmResponse {

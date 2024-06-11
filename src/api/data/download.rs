@@ -1,7 +1,8 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
+use crate::Client;
 
 pub struct DataDownloadRequest {
     data_id: String,
@@ -18,14 +19,12 @@ impl DataDownloadRequest {
 impl MecrmRequest for DataDownloadRequest {
     type Response = DataDownloadResponse;
 
-    async fn request(
-        self,
-        client: Arc<reqwest::Client>,
-        host: url::Url,
-    ) -> Result<DataDownloadResponse> {
-        let endpoint = "data";
+    async fn send(self, client: Arc<Client>) -> Result<DataDownloadResponse> {
+        let endpoint = format!("data/{}", self.data_id);
+
         let response = client
-            .post(host.join(endpoint).unwrap().join(&self.data_id).unwrap())
+            .client()
+            .get(client.host().join(&endpoint).unwrap())
             .send()
             .await?;
 
@@ -33,21 +32,20 @@ impl MecrmRequest for DataDownloadRequest {
     }
 }
 
-#[derive(serde::Deserialize)]
 pub struct DataDownloadResponse {
-    code: u32,
-    status: String,
-    data_id: String,
-    checksum: String,
+    pub data: Vec<u8>,
 }
 
 impl MecrmResponse for DataDownloadResponse {
     type Response = DataDownloadResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<DataDownloadResponse> {
-        response
-            .json()
-            .await
-            .with_context(|| "Failed to parse response")
+        Ok(DataDownloadResponse {
+            data: response
+                .bytes()
+                .await
+                .with_context(|| "Failed to parse response")?
+                .to_vec(),
+        })
     }
 }

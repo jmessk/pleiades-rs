@@ -1,52 +1,35 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
 use reqwest::multipart;
 use std::sync::Arc;
 
-use crate::api::{error::ErrorResponse, MecrmRequest, MecrmResponse};
+use crate::api::{MecrmRequest, MecrmResponse};
+use crate::Client;
 
+/// Request to upload data
 pub struct DataUploadRequest {
     data: Vec<u8>,
 }
 
+/// Response from uploading data
+#[derive(serde::Deserialize)]
+pub struct DataUploadResponse {
+    pub code: i32,
+    pub status: String,
+    #[serde(rename = "id")]
+    pub data_id: String,
+    pub checksum: String,
+}
+
 impl DataUploadRequest {
-    pub fn new() -> DataUploadRequestBuilder {
-        DataUploadRequestBuilder::new()
-    }
-
-    pub fn data(&self) -> &[u8] {
-        self.data.as_slice()
-    }
-}
-
-pub struct DataUploadRequestBuilder {
-    data: Option<Vec<u8>>,
-}
-
-impl DataUploadRequestBuilder {
-    pub fn new() -> DataUploadRequestBuilder {
-        DataUploadRequestBuilder { data: None }
-    }
-
-    pub fn data(mut self, data: impl Into<Vec<u8>>) -> DataUploadRequestBuilder {
-        self.data = Some(data.into());
-        self
-    }
-
-    pub fn build(self) -> Result<DataUploadRequest> {
-        Ok(DataUploadRequest {
-            data: self.data.unwrap(),
-        })
+    pub fn new(data: Vec<u8>) -> DataUploadRequest {
+        DataUploadRequest { data }
     }
 }
 
 impl MecrmRequest for DataUploadRequest {
     type Response = DataUploadResponse;
 
-    async fn request(
-        self,
-        client: Arc<reqwest::Client>,
-        host: url::Url,
-    ) -> Result<DataUploadResponse> {
+    async fn send(self, client: Arc<Client>) -> Result<DataUploadResponse> {
         let endpoint = "data";
 
         let multipart = {
@@ -55,25 +38,14 @@ impl MecrmRequest for DataUploadRequest {
         };
 
         let response = client
-            .post(host.join(endpoint).unwrap())
+            .client()
+            .post(client.host().join(endpoint).unwrap())
             .multipart(multipart)
             .send()
             .await?;
 
-        if let Ok(response) = DataUploadResponse::from_response(response).await {
-            Ok(response)
-        } else {
-            bail!("Failed to upload data")
-        }
+        DataUploadResponse::from_response(response).await
     }
-}
-
-#[derive(serde::Deserialize)]
-pub struct DataUploadResponse {
-    code: u32,
-    status: String,
-    data_id: String,
-    checksum: String,
 }
 
 impl MecrmResponse for DataUploadResponse {
