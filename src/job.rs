@@ -1,7 +1,7 @@
 use anyhow::Result;
 
 use super::{blob::Blob, lambda::Lambda};
-use super::{Client, MecrmObject, ObjectBuilder};
+use super::{Handler, MecrmObject, ObjectBuilder};
 
 pub struct Job {
     id: String,
@@ -31,7 +31,7 @@ impl Job {
 }
 
 struct JobBuilder {
-    client: Client,
+    client: Handler,
     lambda: Option<Lambda>,
     input: Option<Blob>,
 }
@@ -39,7 +39,7 @@ struct JobBuilder {
 impl ObjectBuilder for JobBuilder {
     type Output = Job;
 
-    fn new(client: Client) -> JobBuilder {
+    fn new(client: Handler) -> JobBuilder {
         JobBuilder {
             client,
             lambda: None,

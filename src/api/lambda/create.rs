@@ -2,47 +2,84 @@ use anyhow::{Context, Result};
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Client;
+use crate::Handler;
 
-#[derive(serde::Serialize)]
+pub struct LambdaCreateBuilder {
+    client: Arc<Handler>,
+    data_id: Option<String>,
+    runtime: Option<String>,
+}
+
+impl LambdaCreateBuilder {
+    pub fn new(client: Arc<Handler>) -> LambdaCreateBuilder {
+        LambdaCreateBuilder {
+            client,
+            data_id: None,
+            runtime: None,
+        }
+    }
+
+    pub fn build(self) -> Result<LambdaCreateRequest> {
+        let data_id = self.data_id.with_context(|| "data_id is required")?;
+        let runtime = self.runtime.with_context(|| "runtime is required")?;
+
+        Ok(LambdaCreateRequest {
+            handler: self.client,
+            data_id,
+            runtime,
+        })
+    }
+
+    pub fn data_id(mut self, data_id: impl Into<String>) -> LambdaCreateBuilder {
+        self.data_id = Some(data_id.into());
+        self
+    }
+
+    pub fn runtime(mut self, runtime: impl Into<String>) -> LambdaCreateBuilder {
+        self.runtime = Some(runtime.into());
+        self
+    }
+}
+
+#[derive(serde::Serialize, Debug)]
 pub struct LambdaCreateRequest {
+    #[serde(skip_serializing)]
+    handler: Arc<Handler>,
     #[serde(rename = "codex")]
     data_id: String,
     runtime: String,
 }
 
-#[derive(serde::Deserialize)]
-pub struct LambdaCreateResponse {
-    pub code: u32,
-    pub status: String,
-    #[serde(rename = "id")]
-    pub lambda_id: String,
-}
-
 impl LambdaCreateRequest {
-    pub fn new(data_id: impl Into<String>, runtime: impl Into<String>) -> LambdaCreateRequest {
-        LambdaCreateRequest {
-            data_id: data_id.into(),
-            runtime: runtime.into(),
-        }
+    pub fn builder(client: Arc<Handler>) -> LambdaCreateBuilder {
+        LambdaCreateBuilder::new(client)
     }
 }
 
 impl MecrmRequest for LambdaCreateRequest {
     type Response = LambdaCreateResponse;
 
-    async fn send(self, client: Arc<Client>) -> Result<LambdaCreateResponse> {
+    async fn send(&self) -> Result<LambdaCreateResponse> {
         let endpoint = "lambda";
 
-        let response = client
+        let response = self
+            .handler
             .client()
-            .post(client.host().join(endpoint).unwrap())
+            .post(self.handler.host().join(endpoint).unwrap())
             .json(&self)
             .send()
             .await?;
 
         LambdaCreateResponse::from_response(response).await
     }
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct LambdaCreateResponse {
+    pub code: u32,
+    pub status: String,
+    #[serde(rename = "id")]
+    pub lambda_id: String,
 }
 
 impl MecrmResponse for LambdaCreateResponse {
@@ -53,5 +90,32 @@ impl MecrmResponse for LambdaCreateResponse {
             .json()
             .await
             .with_context(|| "Failed to parse response")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Handler;
+
+    #[tokio::test]
+    async fn test_lambda_create() {
+        let handler = Handler::builder()
+            .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
+            .build()
+            .unwrap();
+
+        let handler = Arc::new(handler);
+
+        let request = LambdaCreateRequest::builder(handler.clone())
+            .data_id("0")
+            .runtime("test+mecrm-rs")
+            .build()
+            .unwrap();
+
+        let response = request.send().await;
+        assert!(response.is_ok());
+
+        dbg!(response.unwrap());
     }
 }

@@ -1,6 +1,6 @@
 use anyhow::{bail, Context as _, Result};
 
-use super::{Client, MecrmObject, ObjectBuilder};
+use super::{Handler, MecrmObject, ObjectBuilder};
 
 pub struct Blob {
     id: String,
@@ -20,14 +20,14 @@ impl Blob {
 }
 
 pub struct BlobBuilder {
-    client: Client,
+    client: Handler,
     data: Option<Vec<u8>>,
 }
 
 impl ObjectBuilder for BlobBuilder {
     type Output = Blob;
 
-    fn new(client: Client) -> BlobBuilder {
+    fn new(client: Handler) -> BlobBuilder {
         BlobBuilder { client, data: None }
     }
 

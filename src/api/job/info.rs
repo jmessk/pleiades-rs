@@ -2,10 +2,53 @@ use anyhow::{Context, Result};
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Client;
+use crate::Handler;
+
+struct JobInfoBuilder {
+    handler: Arc<Handler>,
+    job_id: Option<String>,
+    except: Option<String>,
+    timeout: Option<u32>,
+}
+
+impl JobInfoBuilder {
+    pub fn new(handler: Arc<Handler>) -> JobInfoBuilder {
+        JobInfoBuilder {
+            handler,
+            job_id: None,
+            except: None,
+            timeout: None,
+        }
+    }
+
+    pub fn build(self) -> Result<JobInfoRequest> {
+        let job_id = self.job_id.with_context(|| "job_id is required")?;
+
+        Ok(JobInfoRequest {
+            handler: self.handler,
+            job_id,
+            except: self.except,
+            timeout: self.timeout,
+        })
+    }
+
+    pub fn job_id(mut self, job_id: impl Into<String>) -> JobInfoBuilder {
+        self.job_id = Some(job_id.into());
+        self
+    }
+}
 
 pub struct JobInfoRequest {
+    handler: Arc<Handler>,
     job_id: String,
+    except: Option<String>,
+    timeout: Option<u32>,
+}
+
+impl JobInfoRequest {
+    pub fn builder(handler: Arc<Handler>) -> JobInfoBuilder {
+        JobInfoBuilder::new(handler)
+    }
 }
 
 #[derive(serde::Deserialize)]
@@ -37,23 +80,16 @@ pub struct JobInfoResponse {
     job_id: String,
 }
 
-impl JobInfoRequest {
-    pub fn new(job_id: impl Into<String>) -> JobInfoRequest {
-        JobInfoRequest {
-            job_id: job_id.into(),
-        }
-    }
-}
-
 impl MecrmRequest for JobInfoRequest {
     type Response = JobInfoResponse;
 
-    async fn send(self, client: Arc<Client>) -> Result<JobInfoResponse> {
+    async fn send(&self) -> Result<JobInfoResponse> {
         let endpoint = format!("job/{}", self.job_id);
 
-        let response = client
+        let response = self
+            .handler
             .client()
-            .get(client.host().join(&endpoint).unwrap())
+            .get(self.handler.host().join(&endpoint).unwrap())
             .send()
             .await?;
 

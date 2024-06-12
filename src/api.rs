@@ -6,13 +6,10 @@ mod lambda;
 mod worker;
 
 use anyhow::Result;
-use std::sync::Arc;
-
-use crate::Client;
 
 trait MecrmRequest {
     type Response: MecrmResponse;
-    async fn send(self, client: Arc<Client>) -> Result<Self::Response>;
+    async fn send(&self) -> Result<Self::Response>;
 }
 
 trait MecrmResponse {
