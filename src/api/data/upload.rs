@@ -4,15 +4,15 @@ use reqwest::multipart;
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Handler;
+use crate::Client;
 
 pub struct DataUploadBuilder {
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
     data: Option<Bytes>,
 }
 
 impl DataUploadBuilder {
-    pub fn new(handler: Arc<Handler>) -> DataUploadBuilder {
+    pub fn new(handler: Arc<Client>) -> DataUploadBuilder {
         DataUploadBuilder {
             handler,
             data: None,
@@ -37,12 +37,12 @@ impl DataUploadBuilder {
 /// Request to upload data
 #[derive(Debug)]
 pub struct DataUploadRequest {
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
     data: Bytes,
 }
 
 impl DataUploadRequest {
-    pub fn builder(client: Arc<Handler>) -> DataUploadBuilder {
+    pub fn builder(client: Arc<Client>) -> DataUploadBuilder {
         DataUploadBuilder::new(client)
     }
 }
@@ -94,11 +94,11 @@ impl MecrmResponse for DataUploadResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Handler;
+    use crate::Client;
 
     #[tokio::test]
     async fn test_data_upload() {
-        let handler = Handler::builder()
+        let handler = Client::builder()
             .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
             .build()
             .unwrap();

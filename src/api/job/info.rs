@@ -2,17 +2,17 @@ use anyhow::{Context, Result};
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Handler;
+use crate::Client;
 
-struct JobInfoBuilder {
-    handler: Arc<Handler>,
+pub struct JobInfoBuilder {
+    handler: Arc<Client>,
     job_id: Option<String>,
     except: Option<String>,
     timeout: Option<u32>,
 }
 
 impl JobInfoBuilder {
-    pub fn new(handler: Arc<Handler>) -> JobInfoBuilder {
+    pub fn new(handler: Arc<Client>) -> JobInfoBuilder {
         JobInfoBuilder {
             handler,
             job_id: None,
@@ -36,48 +36,30 @@ impl JobInfoBuilder {
         self.job_id = Some(job_id.into());
         self
     }
+
+    pub fn except(mut self, except: impl Into<String>) -> JobInfoBuilder {
+        self.except = Some(except.into());
+        self
+    }
+
+    pub fn timeout(mut self, timeout: u32) -> JobInfoBuilder {
+        self.timeout = Some(timeout);
+        self
+    }
 }
 
+#[derive(Debug)]
 pub struct JobInfoRequest {
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
     job_id: String,
     except: Option<String>,
     timeout: Option<u32>,
 }
 
 impl JobInfoRequest {
-    pub fn builder(handler: Arc<Handler>) -> JobInfoBuilder {
+    pub fn builder(handler: Arc<Client>) -> JobInfoBuilder {
         JobInfoBuilder::new(handler)
     }
-}
-
-#[derive(serde::Deserialize)]
-struct Lambda {
-    #[serde(rename = "id")]
-    lambda_id: String,
-    runtime: String,
-    #[serde(rename = "codex")]
-    data_id: String,
-}
-
-#[derive(serde::Deserialize)]
-struct Input {
-    #[serde(rename = "id")]
-    data_id: String,
-}
-
-#[derive(serde::Deserialize)]
-struct Output {
-    #[serde(rename = "id")]
-    data_id: String,
-}
-
-#[derive(serde::Deserialize)]
-pub struct JobInfoResponse {
-    code: i32,
-    status: String,
-    #[serde(rename = "id")]
-    job_id: String,
 }
 
 impl MecrmRequest for JobInfoRequest {
@@ -90,11 +72,47 @@ impl MecrmRequest for JobInfoRequest {
             .handler
             .client()
             .get(self.handler.host().join(&endpoint).unwrap())
+            .query(&[("except", self.except.as_deref())])
+            .query(&[("timeout", self.timeout)])
             .send()
             .await?;
 
         JobInfoResponse::from_response(response).await
     }
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct Lambda {
+    #[serde(rename = "id")]
+    pub lambda_id: String,
+    pub runtime: String,
+    #[serde(rename = "codex")]
+    pub data_id: String,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct Input {
+    #[serde(rename = "id")]
+    pub data_id: String,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct Output {
+    #[serde(rename = "id")]
+    pub data_id: String,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct JobInfoResponse {
+    pub code: i32,
+    pub status: String,
+    #[serde(rename = "id")]
+    pub job_id: String,
+    #[serde(rename = "state")]
+    pub job_status: String,
+    pub lambda: Lambda,
+    pub input: Input,
+    pub output: Option<Output>,
 }
 
 impl MecrmResponse for JobInfoResponse {

@@ -7,14 +7,21 @@ mod worker;
 
 use anyhow::Result;
 
-trait MecrmRequest {
+pub use data::{download::DataDownloadRequest, upload::DataUploadRequest};
+pub use job::{create::JobCreateRequest, info::JobInfoRequest, update::JobUpdateRequest};
+pub use lambda::create::LambdaCreateRequest;
+pub use worker::{contract::WorkerContractRequest, register::WorkerRegisterRequest};
+
+pub trait MecrmRequest {
     type Response: MecrmResponse;
-    async fn send(&self) -> Result<Self::Response>;
+    fn send(&self) -> impl std::future::Future<Output = Result<Self::Response>> + Send;
 }
 
-trait MecrmResponse {
+pub trait MecrmResponse {
     type Response: MecrmResponse;
-    async fn from_response(response: reqwest::Response) -> Result<Self::Response>;
+    fn from_response(
+        response: reqwest::Response,
+    ) -> impl std::future::Future<Output = Result<Self::Response>> + Send;
 }
 
 // pub enum ApiResult<T>

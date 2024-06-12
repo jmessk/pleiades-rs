@@ -2,17 +2,17 @@ use anyhow::{Context, Result};
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Handler;
+use crate::Client;
 
 pub struct WorkerContractBuilder {
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
     worker_id: Option<String>,
     tags: Option<Vec<String>>,
     timeout: Option<u32>,
 }
 
 impl WorkerContractBuilder {
-    pub fn new(handler: Arc<Handler>) -> WorkerContractBuilder {
+    pub fn new(handler: Arc<Client>) -> WorkerContractBuilder {
         WorkerContractBuilder {
             handler,
             worker_id: None,
@@ -50,10 +50,10 @@ impl WorkerContractBuilder {
     }
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, Debug)]
 pub struct WorkerContractRequest {
     #[serde(skip_serializing)]
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
     #[serde(rename = "id")]
     worker_id: String,
     tags: Vec<String>,
@@ -61,7 +61,7 @@ pub struct WorkerContractRequest {
 }
 
 impl WorkerContractRequest {
-    pub fn builder(handler: Arc<Handler>) -> WorkerContractBuilder {
+    pub fn builder(handler: Arc<Client>) -> WorkerContractBuilder {
         WorkerContractBuilder::new(handler)
     }
 }
@@ -84,11 +84,11 @@ impl MecrmRequest for WorkerContractRequest {
     }
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Debug)]
 pub struct WorkerContractResponse {
     pub code: u32,
-    status: String,
-    #[serde(rename = "id")]
+    pub status: String,
+    #[serde(rename = "job")]
     pub job_id: Option<String>,
 }
 

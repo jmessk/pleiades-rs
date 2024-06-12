@@ -1,7 +1,7 @@
 use anyhow::{bail, Result};
 
 use super::{blob::Blob, runtime::Runtime};
-use super::{Handler, MecrmObject, ObjectBuilder};
+use super::{Client, MecrmObject, ObjectBuilder};
 
 pub struct Lambda {
     id: String,
@@ -26,7 +26,7 @@ impl Lambda {
 }
 
 pub struct LambdaBuilder {
-    client: Handler,
+    client: Client,
     id: Option<String>,
     runtime: Option<Runtime>,
     blob: Option<Blob>,
@@ -35,7 +35,7 @@ pub struct LambdaBuilder {
 impl ObjectBuilder for LambdaBuilder {
     type Output = Lambda;
 
-    fn new(client: Handler) -> LambdaBuilder {
+    fn new(client: Client) -> LambdaBuilder {
         LambdaBuilder {
             client,
             id: None,

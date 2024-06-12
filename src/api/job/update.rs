@@ -2,10 +2,10 @@ use anyhow::{Context, Result};
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Handler;
+use crate::Client;
 
 pub struct JobUpdateBuilder {
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
     job_id: Option<String>,
     data_id: Option<String>,
     status: Option<String>,
@@ -13,7 +13,7 @@ pub struct JobUpdateBuilder {
 }
 
 impl JobUpdateBuilder {
-    pub fn new(handler: Arc<Handler>) -> JobUpdateBuilder {
+    pub fn new(handler: Arc<Client>) -> JobUpdateBuilder {
         JobUpdateBuilder {
             handler,
             job_id: None,
@@ -62,7 +62,7 @@ impl JobUpdateBuilder {
 #[derive(serde::Serialize)]
 pub struct JobUpdateRequest {
     #[serde(skip_serializing)]
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
     #[serde(skip_serializing)]
     job_id: String,
     #[serde(rename = "output")]
@@ -73,7 +73,7 @@ pub struct JobUpdateRequest {
 }
 
 impl JobUpdateRequest {
-    pub fn builder(handler: Arc<Handler>) -> JobUpdateBuilder {
+    pub fn builder(handler: Arc<Client>) -> JobUpdateBuilder {
         JobUpdateBuilder::new(handler)
     }
 }
@@ -98,9 +98,9 @@ impl MecrmRequest for JobUpdateRequest {
 
 #[derive(serde::Deserialize)]
 pub struct JobUpdateResponse {
-    code: i32,
-    status: String,
-    message: String,
+    pub code: i32,
+    pub status: String,
+    pub message: String,
 }
 
 impl MecrmResponse for JobUpdateResponse {

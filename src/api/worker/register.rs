@@ -2,15 +2,15 @@ use anyhow::{Context, Result};
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Handler;
+use crate::Client;
 
 pub struct WorkerRegisterBuilder {
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
     runtimes: Option<Vec<String>>,
 }
 
 impl WorkerRegisterBuilder {
-    pub fn new(handler: Arc<Handler>) -> WorkerRegisterBuilder {
+    pub fn new(handler: Arc<Client>) -> WorkerRegisterBuilder {
         WorkerRegisterBuilder {
             handler,
             runtimes: None,
@@ -35,12 +35,13 @@ impl WorkerRegisterBuilder {
 #[derive(serde::Serialize, Debug)]
 pub struct WorkerRegisterRequest {
     #[serde(skip_serializing)]
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
+    #[serde(rename = "runtime")]
     runtimes: Vec<String>,
 }
 
 impl WorkerRegisterRequest {
-    pub fn builder(handler: Arc<Handler>) -> WorkerRegisterBuilder {
+    pub fn builder(handler: Arc<Client>) -> WorkerRegisterBuilder {
         WorkerRegisterBuilder::new(handler)
     }
 }
@@ -66,7 +67,7 @@ impl MecrmRequest for WorkerRegisterRequest {
 #[derive(serde::Deserialize, Debug)]
 pub struct WorkerRegisterResponse {
     pub code: u32,
-    status: String,
+    pub status: String,
     #[serde(rename = "id")]
     pub worker_id: String,
     #[serde(rename = "runtime")]
@@ -87,11 +88,11 @@ impl MecrmResponse for WorkerRegisterResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Handler;
+    use crate::Client;
 
     #[tokio::test]
     async fn test_worker_register() {
-        let handler = Handler::builder()
+        let handler = Client::builder()
             .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
             .build()
             .unwrap();

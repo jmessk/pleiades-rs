@@ -2,16 +2,16 @@ use anyhow::{Context, Result};
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Handler;
+use crate::Client;
 
 pub struct LambdaCreateBuilder {
-    client: Arc<Handler>,
+    client: Arc<Client>,
     data_id: Option<String>,
     runtime: Option<String>,
 }
 
 impl LambdaCreateBuilder {
-    pub fn new(client: Arc<Handler>) -> LambdaCreateBuilder {
+    pub fn new(client: Arc<Client>) -> LambdaCreateBuilder {
         LambdaCreateBuilder {
             client,
             data_id: None,
@@ -44,14 +44,14 @@ impl LambdaCreateBuilder {
 #[derive(serde::Serialize, Debug)]
 pub struct LambdaCreateRequest {
     #[serde(skip_serializing)]
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
     #[serde(rename = "codex")]
     data_id: String,
     runtime: String,
 }
 
 impl LambdaCreateRequest {
-    pub fn builder(client: Arc<Handler>) -> LambdaCreateBuilder {
+    pub fn builder(client: Arc<Client>) -> LambdaCreateBuilder {
         LambdaCreateBuilder::new(client)
     }
 }
@@ -96,11 +96,11 @@ impl MecrmResponse for LambdaCreateResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Handler;
+    use crate::Client;
 
     #[tokio::test]
     async fn test_lambda_create() {
-        let handler = Handler::builder()
+        let handler = Client::builder()
             .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
             .build()
             .unwrap();

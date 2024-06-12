@@ -2,17 +2,17 @@ use anyhow::{Context, Result};
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Handler;
+use crate::Client;
 
 pub struct JobCreateBuilder {
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
     data_id: Option<String>,
     lambda_id: Option<String>,
     tags: Option<Vec<String>>,
 }
 
 impl JobCreateBuilder {
-    pub fn new(handler: Arc<Handler>) -> JobCreateBuilder {
+    pub fn new(handler: Arc<Client>) -> JobCreateBuilder {
         JobCreateBuilder {
             handler,
             data_id: None,
@@ -50,10 +50,10 @@ impl JobCreateBuilder {
     }
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, Debug)]
 pub struct JobCreateRequest {
     #[serde(skip_serializing)]
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
     #[serde(rename = "input")]
     data_id: String,
     #[serde(rename = "lambda")]
@@ -62,7 +62,7 @@ pub struct JobCreateRequest {
 }
 
 impl JobCreateRequest {
-    pub fn builder(handler: Arc<Handler>) -> JobCreateBuilder {
+    pub fn builder(handler: Arc<Client>) -> JobCreateBuilder {
         JobCreateBuilder::new(handler)
     }
 }
@@ -85,12 +85,12 @@ impl MecrmRequest for JobCreateRequest {
     }
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Debug)]
 pub struct JobCreateResponse {
-    code: i32,
-    status: String,
+    pub code: i32,
+    pub status: String,
     #[serde(rename = "id")]
-    job_id: String,
+    pub job_id: String,
 }
 
 impl MecrmResponse for JobCreateResponse {

@@ -1,2 +1,2 @@
-mod register;
-mod contract;
+pub mod register;
+pub mod contract;

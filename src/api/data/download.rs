@@ -3,15 +3,15 @@ use bytes::Bytes;
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Handler;
+use crate::Client;
 
 pub struct DataDownloadBuilder {
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
     data_id: Option<String>,
 }
 
 impl DataDownloadBuilder {
-    pub fn new(client: Arc<Handler>) -> DataDownloadBuilder {
+    pub fn new(client: Arc<Client>) -> DataDownloadBuilder {
         DataDownloadBuilder {
             handler: client,
             data_id: None,
@@ -35,12 +35,12 @@ impl DataDownloadBuilder {
 
 #[derive(Debug)]
 pub struct DataDownloadRequest {
-    handler: Arc<Handler>,
+    handler: Arc<Client>,
     data_id: String,
 }
 
 impl DataDownloadRequest {
-    pub fn builder(client: Arc<Handler>) -> DataDownloadBuilder {
+    pub fn builder(client: Arc<Client>) -> DataDownloadBuilder {
         DataDownloadBuilder::new(client)
     }
 }
@@ -49,7 +49,7 @@ impl MecrmRequest for DataDownloadRequest {
     type Response = DataDownloadResponse;
 
     async fn send(&self) -> Result<DataDownloadResponse> {
-        let endpoint = format!("data/{}", self.data_id);
+        let endpoint = format!("data/{}/blob", self.data_id);
 
         let response = self
             .handler
@@ -80,18 +80,18 @@ impl MecrmResponse for DataDownloadResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Handler;
+    use crate::Client;
 
     #[tokio::test]
     async fn test_data_download() {
-        let handler = Handler::builder()
+        let handler = Client::builder()
             .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
             .build()
             .unwrap();
 
         let handler = Arc::new(handler);
 
-        let request = DataDownloadRequest::builder(handler.clone())
+        let request = DataDownloadRequest::builder(Arc::clone(&handler))
             .data_id("0")
             .build()
             .unwrap();
