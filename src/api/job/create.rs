@@ -65,7 +65,7 @@ impl JobCreateRequest {
 impl MecrmRequest for JobCreateRequest {
     type Response = JobCreateResponse;
 
-    async fn send(&self, client: Arc<Client>) -> Result<JobCreateResponse> {
+    async fn send(&self, client: &Arc<Client>) -> Result<JobCreateResponse> {
         let endpoint = "job";
 
         let response = client

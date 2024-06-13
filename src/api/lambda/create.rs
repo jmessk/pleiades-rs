@@ -51,7 +51,7 @@ impl LambdaCreateRequest {
 impl MecrmRequest for LambdaCreateRequest {
     type Response = LambdaCreateResponse;
 
-    async fn send(&self, client: Arc<Client>) -> Result<LambdaCreateResponse> {
+    async fn send(&self, client: &Arc<Client>) -> Result<LambdaCreateResponse> {
         let endpoint = "lambda";
 
         let response = client
@@ -104,7 +104,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let response = request.send(client.clone()).await;
+        let response = request.send(&client).await;
         assert!(response.is_ok());
 
         dbg!(response.unwrap());

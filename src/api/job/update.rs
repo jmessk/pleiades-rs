@@ -68,7 +68,7 @@ impl JobUpdateRequest {
 impl MecrmRequest for JobUpdateRequest {
     type Response = JobUpdateResponse;
 
-    async fn send(&self, client: Arc<Client>) -> Result<JobUpdateResponse> {
+    async fn send(&self, client: &Arc<Client>) -> Result<JobUpdateResponse> {
         let endpoint = format!("job/{}", self.job_id);
 
         let response = client

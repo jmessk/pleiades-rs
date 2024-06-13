@@ -19,7 +19,7 @@ pub trait MecrmRequest {
     type Response: MecrmResponse;
     fn send(
         &self,
-        client: Arc<Client>,
+        client: &Arc<Client>,
     ) -> impl std::future::Future<Output = Result<Self::Response>> + Send;
 }
 

@@ -61,7 +61,7 @@ impl JobInfoRequest {
 impl MecrmRequest for JobInfoRequest {
     type Response = JobInfoResponse;
 
-    async fn send(&self, client: Arc<Client>) -> Result<JobInfoResponse> {
+    async fn send(&self, client: &Arc<Client>) -> Result<JobInfoResponse> {
         let endpoint = format!("job/{}", self.job_id);
 
         let response = match &self.except {

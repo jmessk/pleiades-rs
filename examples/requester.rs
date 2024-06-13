@@ -2,6 +2,7 @@ use std::env;
 use std::sync::Arc;
 use std::time::Instant;
 
+use anyhow::Result;
 use mecrm_rs::api::*;
 use mecrm_rs::Client;
 
@@ -10,8 +11,8 @@ async fn main() -> anyhow::Result<()> {
     // create arc client
     let client = Arc::new(
         Client::builder()
-            // .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
-            .host("http://192.168.168.127:8332/api/v0.5/")
+            .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
+            // .host("http://192.168.168.127:8332/api/v0.5/")
             .build()?,
     );
 
@@ -33,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
         .map(|_| {
             let client = client.clone();
             tokio::spawn(async move {
-                requester(client).await;
+                requester(client).await.unwrap();
             })
         })
         .collect::<Vec<_>>();
@@ -42,64 +43,54 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn requester(client: Arc<Client>) {
-    // let start = Instant::now();
+async fn requester(client: Arc<Client>) -> Result<()> {
+    let start_job = Instant::now();
 
     let lambda_blob = DataUploadRequest::builder()
         .data("".into())
-        .build()
-        .unwrap()
-        .send(client.clone())
-        .await
-        .unwrap();
+        .build()?
+        .send(&client)
+        .await?;
 
     let lambda = LambdaCreateRequest::builder()
         .data_id(&lambda_blob.data_id)
-        // .runtime("mecrm-rs")
-        .runtime("bench+pymec")
-        .build()
-        .unwrap()
-        .send(client.clone())
-        .await
-        .unwrap();
+        .runtime("mecrm-rs")
+        // .runtime("bench+pymec")
+        .build()?
+        .send(&client)
+        .await?;
 
     let input_blob = DataUploadRequest::builder()
         .data("".into())
-        .build()
-        .unwrap()
-        .send(client.clone())
-        .await
-        .unwrap();
+        .build()?
+        .send(&client)
+        .await?;
 
     let job = JobCreateRequest::builder()
         .lambda_id(lambda.lambda_id)
         .data_id(&input_blob.data_id)
-        .build()
-        .unwrap()
-        .send(client.clone())
-        .await
-        .unwrap();
+        .build()?
+        .send(&client)
+        .await?;
 
     let job_info = JobInfoRequest::builder()
         .job_id(&job.job_id)
         .except("Finished")
         .timeout(10)
-        .build()
-        .unwrap()
-        .send(client.clone())
-        .await
-        .unwrap();
+        .build()?
+        .send(&client)
+        .await?;
 
-    let start = Instant::now();
     let _ = DataDownloadRequest::builder()
         .data_id(&job_info.output.unwrap().data_id)
-        .build()
-        .unwrap()
-        .send(client.clone())
-        .await
-        .unwrap();
+        .build()?
+        .send(&client)
+        .await?;
 
-    println!("elapsed: {:?}", start.elapsed().as_secs_f64() * 1000.0);
-
-    // println!("elapsed: {:?}", start.elapsed());
+    println!(
+        "Job {} finished, elapsed: {:?}",
+        job.job_id,
+        start_job.elapsed()
+    );
+    Ok(())
 }

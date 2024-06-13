@@ -40,9 +40,9 @@ impl DataDownloadRequest {
 impl MecrmRequest for DataDownloadRequest {
     type Response = DataDownloadResponse;
 
-    async fn send(&self, client: Arc<Client>) -> Result<DataDownloadResponse> {
+    async fn send(&self, client: &Arc<Client>) -> Result<DataDownloadResponse> {
         let endpoint = format!("data/{}/blob", self.data_id);
-
+        
         let response = client
             .client()
             .get(client.host().join(&endpoint).unwrap())
@@ -83,7 +83,7 @@ mod tests {
 
         let request = DataDownloadRequest::builder().data_id("0").build().unwrap();
 
-        let response = request.send(client.clone()).await;
+        let response = request.send(&client).await;
         assert!(response.is_ok());
     }
 }

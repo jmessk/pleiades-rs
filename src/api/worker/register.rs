@@ -40,7 +40,7 @@ impl WorkerRegisterRequest {
 impl MecrmRequest for WorkerRegisterRequest {
     type Response = WorkerRegisterResponse;
 
-    async fn send(&self, client: Arc<Client>) -> Result<WorkerRegisterResponse> {
+    async fn send(&self, client: &Arc<Client>) -> Result<WorkerRegisterResponse> {
         let endpoint = "worker";
 
         let response = client
@@ -96,7 +96,7 @@ mod tests {
 
         dbg!(&request);
 
-        let response = request.send(client.clone()).await;
+        let response = request.send(&client).await;
         assert!(response.is_ok());
 
         dbg!(response.unwrap().runtimes);

@@ -42,7 +42,7 @@ impl DataUploadRequest {
 impl MecrmRequest for DataUploadRequest {
     type Response = DataUploadResponse;
 
-    async fn send(&self, client: Arc<Client>) -> Result<DataUploadResponse> {
+    async fn send(&self, client: &Arc<Client>) -> Result<DataUploadResponse> {
         let endpoint = "data";
 
         let multipart = {
@@ -101,7 +101,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let response = request.send(client.clone()).await;
+        let response = request.send(&client).await;
         assert!(response.is_ok());
 
         dbg!(response.unwrap());

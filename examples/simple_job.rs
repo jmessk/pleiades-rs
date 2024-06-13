@@ -23,7 +23,7 @@ async fn main() {
             .data("input".into())
             .build()
             .unwrap()
-            .send(client.clone())
+            .send(&client)
             .await
             .unwrap();
 
@@ -34,7 +34,7 @@ async fn main() {
             .runtime("mecrm-rs")
             .build()
             .unwrap()
-            .send(client.clone())
+            .send(&client)
             .await
             .unwrap();
 
@@ -45,7 +45,7 @@ async fn main() {
             .lambda_id(lambda.lambda_id)
             .build()
             .unwrap()
-            .send(client.clone())
+            .send(&client)
             .await
             .unwrap();
 
@@ -57,7 +57,7 @@ async fn main() {
             .timeout(10)
             .build()
             .unwrap()
-            .send(client.clone())
+            .send(&client)
             .await
             .unwrap();
 
@@ -67,7 +67,7 @@ async fn main() {
             .data_id(&job_info.output.unwrap().data_id)
             .build()
             .unwrap()
-            .send(client.clone())
+            .send(&client)
             .await
             .unwrap();
 
@@ -83,7 +83,7 @@ async fn main() {
             .runtimes(vec!["mecrm-rs".into()])
             .build()
             .unwrap()
-            .send(client.clone())
+            .send(&client)
             .await
             .unwrap();
 
@@ -94,7 +94,7 @@ async fn main() {
             .timeout(10)
             .build()
             .unwrap()
-            .send(client.clone())
+            .send(&client)
             .await
             .unwrap();
 
@@ -104,7 +104,7 @@ async fn main() {
             .job_id(&job.job_id.unwrap())
             .build()
             .unwrap()
-            .send(client.clone())
+            .send(&client)
             .await
             .unwrap();
 
@@ -114,7 +114,7 @@ async fn main() {
             .data_id(job_info.input.data_id)
             .build()
             .unwrap()
-            .send(client.clone())
+            .send(&client)
             .await
             .unwrap();
 
@@ -124,7 +124,7 @@ async fn main() {
             .data("output".into())
             .build()
             .unwrap()
-            .send(client.clone())
+            .send(&client)
             .await
             .unwrap();
 
@@ -136,7 +136,7 @@ async fn main() {
             .status("finished")
             .build()
             .unwrap()
-            .send(client.clone())
+            .send(&client)
             .await
             .unwrap();
 

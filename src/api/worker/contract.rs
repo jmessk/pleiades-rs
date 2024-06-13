@@ -64,7 +64,7 @@ impl WorkerContractRequest {
 impl MecrmRequest for WorkerContractRequest {
     type Response = WorkerContractResponse;
 
-    async fn send(&self, client: Arc<Client>) -> Result<WorkerContractResponse> {
+    async fn send(&self, client: &Arc<Client>) -> Result<WorkerContractResponse> {
         let endpoint = format!("worker/{}/contract", self.worker_id);
 
         let response = client
