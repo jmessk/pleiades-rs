@@ -5,16 +5,14 @@ use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
 pub struct JobCreateBuilder {
-    handler: Arc<Client>,
     data_id: Option<String>,
     lambda_id: Option<String>,
     tags: Option<Vec<String>>,
 }
 
 impl JobCreateBuilder {
-    pub fn new(handler: Arc<Client>) -> JobCreateBuilder {
+    pub fn new() -> JobCreateBuilder {
         JobCreateBuilder {
-            handler,
             data_id: None,
             lambda_id: None,
             tags: None,
@@ -27,7 +25,6 @@ impl JobCreateBuilder {
         let tags = self.tags.unwrap_or_default();
 
         Ok(JobCreateRequest {
-            handler: self.handler,
             data_id,
             lambda_id,
             tags,
@@ -52,8 +49,6 @@ impl JobCreateBuilder {
 
 #[derive(serde::Serialize, Debug)]
 pub struct JobCreateRequest {
-    #[serde(skip_serializing)]
-    handler: Arc<Client>,
     #[serde(rename = "input")]
     data_id: String,
     #[serde(rename = "lambda")]
@@ -62,21 +57,20 @@ pub struct JobCreateRequest {
 }
 
 impl JobCreateRequest {
-    pub fn builder(handler: Arc<Client>) -> JobCreateBuilder {
-        JobCreateBuilder::new(handler)
+    pub fn builder() -> JobCreateBuilder {
+        JobCreateBuilder::new()
     }
 }
 
 impl MecrmRequest for JobCreateRequest {
     type Response = JobCreateResponse;
 
-    async fn send(&self) -> Result<JobCreateResponse> {
+    async fn send(&self, client: Arc<Client>) -> Result<JobCreateResponse> {
         let endpoint = "job";
 
-        let response = self
-            .handler
+        let response = client
             .client()
-            .post(self.handler.host().join(endpoint).unwrap())
+            .post(client.host().join(endpoint).unwrap())
             .json(&self)
             .send()
             .await?;

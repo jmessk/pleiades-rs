@@ -5,16 +5,14 @@ use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
 pub struct JobInfoBuilder {
-    handler: Arc<Client>,
     job_id: Option<String>,
     except: Option<String>,
     timeout: Option<u32>,
 }
 
 impl JobInfoBuilder {
-    pub fn new(handler: Arc<Client>) -> JobInfoBuilder {
+    pub fn new() -> JobInfoBuilder {
         JobInfoBuilder {
-            handler,
             job_id: None,
             except: None,
             timeout: None,
@@ -25,7 +23,6 @@ impl JobInfoBuilder {
         let job_id = self.job_id.with_context(|| "job_id is required")?;
 
         Ok(JobInfoRequest {
-            handler: self.handler,
             job_id,
             except: self.except,
             timeout: self.timeout,
@@ -50,32 +47,41 @@ impl JobInfoBuilder {
 
 #[derive(Debug)]
 pub struct JobInfoRequest {
-    handler: Arc<Client>,
     job_id: String,
     except: Option<String>,
     timeout: Option<u32>,
 }
 
 impl JobInfoRequest {
-    pub fn builder(handler: Arc<Client>) -> JobInfoBuilder {
-        JobInfoBuilder::new(handler)
+    pub fn builder() -> JobInfoBuilder {
+        JobInfoBuilder::new()
     }
 }
 
 impl MecrmRequest for JobInfoRequest {
     type Response = JobInfoResponse;
 
-    async fn send(&self) -> Result<JobInfoResponse> {
+    async fn send(&self, client: Arc<Client>) -> Result<JobInfoResponse> {
         let endpoint = format!("job/{}", self.job_id);
 
-        let response = self
-            .handler
-            .client()
-            .get(self.handler.host().join(&endpoint).unwrap())
-            .query(&[("except", self.except.as_deref())])
-            .query(&[("timeout", self.timeout)])
-            .send()
-            .await?;
+        let response = match &self.except {
+            Some(except) => {
+                client
+                    .client()
+                    .get(client.host().join(&endpoint).unwrap())
+                    .query(&[("except", except)])
+                    .query(&[("timeout", self.timeout)])
+                    .send()
+                    .await?
+            }
+            None => {
+                client
+                    .client()
+                    .get(client.host().join(&endpoint).unwrap())
+                    .send()
+                    .await?
+            }
+        };
 
         JobInfoResponse::from_response(response).await
     }

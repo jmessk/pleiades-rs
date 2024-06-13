@@ -5,25 +5,18 @@ use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
 pub struct WorkerRegisterBuilder {
-    handler: Arc<Client>,
     runtimes: Option<Vec<String>>,
 }
 
 impl WorkerRegisterBuilder {
-    pub fn new(handler: Arc<Client>) -> WorkerRegisterBuilder {
-        WorkerRegisterBuilder {
-            handler,
-            runtimes: None,
-        }
+    pub fn new() -> WorkerRegisterBuilder {
+        WorkerRegisterBuilder { runtimes: None }
     }
 
     pub fn build(self) -> Result<WorkerRegisterRequest> {
         let runtimes = self.runtimes.with_context(|| "runtimes is required")?;
 
-        Ok(WorkerRegisterRequest {
-            handler: self.handler,
-            runtimes,
-        })
+        Ok(WorkerRegisterRequest { runtimes })
     }
 
     pub fn runtimes(mut self, runtimes: Vec<String>) -> WorkerRegisterBuilder {
@@ -34,28 +27,25 @@ impl WorkerRegisterBuilder {
 
 #[derive(serde::Serialize, Debug)]
 pub struct WorkerRegisterRequest {
-    #[serde(skip_serializing)]
-    handler: Arc<Client>,
     #[serde(rename = "runtime")]
     runtimes: Vec<String>,
 }
 
 impl WorkerRegisterRequest {
-    pub fn builder(handler: Arc<Client>) -> WorkerRegisterBuilder {
-        WorkerRegisterBuilder::new(handler)
+    pub fn builder() -> WorkerRegisterBuilder {
+        WorkerRegisterBuilder::new()
     }
 }
 
 impl MecrmRequest for WorkerRegisterRequest {
     type Response = WorkerRegisterResponse;
 
-    async fn send(&self) -> Result<WorkerRegisterResponse> {
+    async fn send(&self, client: Arc<Client>) -> Result<WorkerRegisterResponse> {
         let endpoint = "worker";
 
-        let response = self
-            .handler
+        let response = client
             .client()
-            .post(self.handler.host().join(endpoint).unwrap())
+            .post(client.host().join(endpoint).unwrap())
             .json(&self)
             .send()
             .await?;
@@ -92,24 +82,21 @@ mod tests {
 
     #[tokio::test]
     async fn test_worker_register() {
-        let handler = Client::builder()
+        let client = Client::builder()
             .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
             .build()
             .unwrap();
 
-        let handler = Arc::new(handler);
+        let client = Arc::new(client);
 
-        let request = WorkerRegisterRequest::builder(handler.clone())
-            .runtimes(vec![
-                "test1".to_string(),
-                "test2".to_string(),
-            ])
+        let request = WorkerRegisterRequest::builder()
+            .runtimes(vec!["test1".to_string(), "test2".to_string()])
             .build()
             .unwrap();
 
         dbg!(&request);
 
-        let response = request.send().await;
+        let response = request.send(client.clone()).await;
         assert!(response.is_ok());
 
         dbg!(response.unwrap().runtimes);

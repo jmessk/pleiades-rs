@@ -5,15 +5,13 @@ use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
 pub struct LambdaCreateBuilder {
-    client: Arc<Client>,
     data_id: Option<String>,
     runtime: Option<String>,
 }
 
 impl LambdaCreateBuilder {
-    pub fn new(client: Arc<Client>) -> LambdaCreateBuilder {
+    pub fn new() -> LambdaCreateBuilder {
         LambdaCreateBuilder {
-            client,
             data_id: None,
             runtime: None,
         }
@@ -23,11 +21,7 @@ impl LambdaCreateBuilder {
         let data_id = self.data_id.with_context(|| "data_id is required")?;
         let runtime = self.runtime.with_context(|| "runtime is required")?;
 
-        Ok(LambdaCreateRequest {
-            handler: self.client,
-            data_id,
-            runtime,
-        })
+        Ok(LambdaCreateRequest { data_id, runtime })
     }
 
     pub fn data_id(mut self, data_id: impl Into<String>) -> LambdaCreateBuilder {
@@ -43,29 +37,26 @@ impl LambdaCreateBuilder {
 
 #[derive(serde::Serialize, Debug)]
 pub struct LambdaCreateRequest {
-    #[serde(skip_serializing)]
-    handler: Arc<Client>,
     #[serde(rename = "codex")]
     data_id: String,
     runtime: String,
 }
 
 impl LambdaCreateRequest {
-    pub fn builder(client: Arc<Client>) -> LambdaCreateBuilder {
-        LambdaCreateBuilder::new(client)
+    pub fn builder() -> LambdaCreateBuilder {
+        LambdaCreateBuilder::new()
     }
 }
 
 impl MecrmRequest for LambdaCreateRequest {
     type Response = LambdaCreateResponse;
 
-    async fn send(&self) -> Result<LambdaCreateResponse> {
+    async fn send(&self, client: Arc<Client>) -> Result<LambdaCreateResponse> {
         let endpoint = "lambda";
 
-        let response = self
-            .handler
+        let response = client
             .client()
-            .post(self.handler.host().join(endpoint).unwrap())
+            .post(client.host().join(endpoint).unwrap())
             .json(&self)
             .send()
             .await?;
@@ -100,20 +91,20 @@ mod tests {
 
     #[tokio::test]
     async fn test_lambda_create() {
-        let handler = Client::builder()
+        let client = Client::builder()
             .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
             .build()
             .unwrap();
 
-        let handler = Arc::new(handler);
+        let client = Arc::new(client);
 
-        let request = LambdaCreateRequest::builder(handler.clone())
+        let request = LambdaCreateRequest::builder()
             .data_id("0")
             .runtime("test+mecrm-rs")
             .build()
             .unwrap();
 
-        let response = request.send().await;
+        let response = request.send(client.clone()).await;
         assert!(response.is_ok());
 
         dbg!(response.unwrap());

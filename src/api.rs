@@ -5,16 +5,22 @@ mod kv;
 mod lambda;
 mod worker;
 
-use anyhow::Result;
-
 pub use data::{download::DataDownloadRequest, upload::DataUploadRequest};
 pub use job::{create::JobCreateRequest, info::JobInfoRequest, update::JobUpdateRequest};
 pub use lambda::create::LambdaCreateRequest;
 pub use worker::{contract::WorkerContractRequest, register::WorkerRegisterRequest};
 
+use crate::Client;
+
+use anyhow::Result;
+use std::sync::Arc;
+
 pub trait MecrmRequest {
     type Response: MecrmResponse;
-    fn send(&self) -> impl std::future::Future<Output = Result<Self::Response>> + Send;
+    fn send(
+        &self,
+        client: Arc<Client>,
+    ) -> impl std::future::Future<Output = Result<Self::Response>> + Send;
 }
 
 pub trait MecrmResponse {

@@ -5,16 +5,14 @@ use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
 pub struct WorkerContractBuilder {
-    handler: Arc<Client>,
     worker_id: Option<String>,
     tags: Option<Vec<String>>,
     timeout: Option<u32>,
 }
 
 impl WorkerContractBuilder {
-    pub fn new(handler: Arc<Client>) -> WorkerContractBuilder {
+    pub fn new() -> WorkerContractBuilder {
         WorkerContractBuilder {
-            handler,
             worker_id: None,
             tags: None,
             timeout: None,
@@ -27,7 +25,6 @@ impl WorkerContractBuilder {
         let timeout = self.timeout.unwrap_or(0);
 
         Ok(WorkerContractRequest {
-            handler: self.handler,
             worker_id,
             tags,
             timeout,
@@ -52,8 +49,6 @@ impl WorkerContractBuilder {
 
 #[derive(serde::Serialize, Debug)]
 pub struct WorkerContractRequest {
-    #[serde(skip_serializing)]
-    handler: Arc<Client>,
     #[serde(rename = "id")]
     worker_id: String,
     tags: Vec<String>,
@@ -61,21 +56,20 @@ pub struct WorkerContractRequest {
 }
 
 impl WorkerContractRequest {
-    pub fn builder(handler: Arc<Client>) -> WorkerContractBuilder {
-        WorkerContractBuilder::new(handler)
+    pub fn builder() -> WorkerContractBuilder {
+        WorkerContractBuilder::new()
     }
 }
 
 impl MecrmRequest for WorkerContractRequest {
     type Response = WorkerContractResponse;
 
-    async fn send(&self) -> Result<WorkerContractResponse> {
+    async fn send(&self, client: Arc<Client>) -> Result<WorkerContractResponse> {
         let endpoint = format!("worker/{}/contract", self.worker_id);
 
-        let response = self
-            .handler
+        let response = client
             .client()
-            .post(self.handler.host().join(&endpoint).unwrap())
+            .post(client.host().join(&endpoint).unwrap())
             .json(&self)
             .send()
             .await?;

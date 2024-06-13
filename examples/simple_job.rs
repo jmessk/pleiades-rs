@@ -15,59 +15,59 @@ async fn main() {
 
     let client = client_arc.clone();
 
-    let task = tokio::spawn(async move {
+    let requester_task = tokio::spawn(async move {
         use std::time::Instant;
         let start = Instant::now();
 
-        let blob = DataUploadRequest::builder(client.clone())
+        let blob = DataUploadRequest::builder()
             .data("input".into())
             .build()
             .unwrap()
-            .send()
+            .send(client.clone())
             .await
             .unwrap();
 
-        dbg!(&blob);
+        // dbg!(&blob);
 
-        let lambda = LambdaCreateRequest::builder(client.clone())
+        let lambda = LambdaCreateRequest::builder()
             .data_id(&blob.data_id)
             .runtime("mecrm-rs")
             .build()
             .unwrap()
-            .send()
+            .send(client.clone())
             .await
             .unwrap();
 
-        dbg!(&lambda);
+        // dbg!(&lambda);
 
-        let job = JobCreateRequest::builder(client.clone())
+        let job = JobCreateRequest::builder()
             .data_id(&blob.data_id)
             .lambda_id(lambda.lambda_id)
             .build()
             .unwrap()
-            .send()
+            .send(client.clone())
             .await
             .unwrap();
 
-        dbg!(&job);
+        // dbg!(&job);
 
-        let job_info = JobInfoRequest::builder(client.clone())
+        let job_info = JobInfoRequest::builder()
             .job_id(&job.job_id)
             .except("Finished")
             .timeout(10)
             .build()
             .unwrap()
-            .send()
+            .send(client.clone())
             .await
             .unwrap();
 
-        dbg!(&job_info);
+        // dbg!(&job_info);
 
-        let output_blob = DataDownloadRequest::builder(client.clone())
+        let output_blob = DataDownloadRequest::builder()
             .data_id(&job_info.output.unwrap().data_id)
             .build()
             .unwrap()
-            .send()
+            .send(client.clone())
             .await
             .unwrap();
 
@@ -78,71 +78,71 @@ async fn main() {
 
     let client = client_arc.clone();
 
-    tokio::spawn(async move {
-        let worker = WorkerRegisterRequest::builder(client.clone())
+    let worker_task = tokio::spawn(async move {
+        let worker = WorkerRegisterRequest::builder()
             .runtimes(vec!["mecrm-rs".into()])
             .build()
             .unwrap()
-            .send()
+            .send(client.clone())
             .await
             .unwrap();
 
-        dbg!(&worker);
+        // dbg!(&worker);
 
-        let job = WorkerContractRequest::builder(client.clone())
+        let job = WorkerContractRequest::builder()
             .worker_id(&worker.worker_id)
             .timeout(10)
             .build()
             .unwrap()
-            .send()
+            .send(client.clone())
             .await
             .unwrap();
 
-        dbg!(&job);
+        // dbg!(&job);
 
-        let job_info = JobInfoRequest::builder(client.clone())
+        let job_info = JobInfoRequest::builder()
             .job_id(&job.job_id.unwrap())
             .build()
             .unwrap()
-            .send()
+            .send(client.clone())
             .await
             .unwrap();
 
-        dbg!(&job_info);
+        // dbg!(&job_info);
 
-        let input_blob = DataDownloadRequest::builder(client.clone())
+        let input_blob = DataDownloadRequest::builder()
             .data_id(job_info.input.data_id)
             .build()
             .unwrap()
-            .send()
+            .send(client.clone())
             .await
             .unwrap();
 
-        dbg!(&input_blob);
+        // dbg!(&input_blob);
 
-        let output_blob = DataUploadRequest::builder(client.clone())
+        let output_blob = DataUploadRequest::builder()
             .data("output".into())
             .build()
             .unwrap()
-            .send()
+            .send(client.clone())
             .await
             .unwrap();
 
-        dbg!(&output_blob);
+        // dbg!(&output_blob);
 
-        let _ = JobUpdateRequest::builder(client.clone())
+        let job_update = JobUpdateRequest::builder()
             .job_id(job_info.job_id)
             .data_id(output_blob.data_id)
             .status("finished")
-            .job_status("finished")
             .build()
             .unwrap()
-            .send()
+            .send(client.clone())
             .await
             .unwrap();
-    })
-    .await
-    .unwrap();
 
-    task.await.unwrap();
+        dbg!(job_update);
+    });
+
+    requester_task.await.unwrap();
+    worker_task.await.unwrap();
 }

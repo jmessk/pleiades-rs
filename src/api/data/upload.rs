@@ -7,25 +7,18 @@ use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
 pub struct DataUploadBuilder {
-    handler: Arc<Client>,
     data: Option<Bytes>,
 }
 
 impl DataUploadBuilder {
-    pub fn new(handler: Arc<Client>) -> DataUploadBuilder {
-        DataUploadBuilder {
-            handler,
-            data: None,
-        }
+    pub fn new() -> DataUploadBuilder {
+        DataUploadBuilder { data: None }
     }
 
     pub fn build(self) -> Result<DataUploadRequest> {
         let data = self.data.with_context(|| "data is required")?;
 
-        Ok(DataUploadRequest {
-            handler: self.handler,
-            data,
-        })
+        Ok(DataUploadRequest { data })
     }
 
     pub fn data(mut self, data: Bytes) -> DataUploadBuilder {
@@ -37,20 +30,19 @@ impl DataUploadBuilder {
 /// Request to upload data
 #[derive(Debug)]
 pub struct DataUploadRequest {
-    handler: Arc<Client>,
     data: Bytes,
 }
 
 impl DataUploadRequest {
-    pub fn builder(client: Arc<Client>) -> DataUploadBuilder {
-        DataUploadBuilder::new(client)
+    pub fn builder() -> DataUploadBuilder {
+        DataUploadBuilder::new()
     }
 }
 
 impl MecrmRequest for DataUploadRequest {
     type Response = DataUploadResponse;
 
-    async fn send(&self) -> Result<DataUploadResponse> {
+    async fn send(&self, client: Arc<Client>) -> Result<DataUploadResponse> {
         let endpoint = "data";
 
         let multipart = {
@@ -58,10 +50,9 @@ impl MecrmRequest for DataUploadRequest {
             multipart::Form::new().part("file", part)
         };
 
-        let response = self
-            .handler
+        let response = client
             .client()
-            .post(self.handler.host().join(endpoint).unwrap())
+            .post(client.host().join(endpoint).unwrap())
             .multipart(multipart)
             .send()
             .await?;
@@ -98,19 +89,19 @@ mod tests {
 
     #[tokio::test]
     async fn test_data_upload() {
-        let handler = Client::builder()
+        let client = Client::builder()
             .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
             .build()
             .unwrap();
 
-        let handler = Arc::new(handler);
+        let client = Arc::new(client);
 
-        let request = DataUploadRequest::builder(handler.clone())
+        let request = DataUploadRequest::builder()
             .data(Bytes::from_static(b"hello world"))
             .build()
             .unwrap();
 
-        let response = request.send().await;
+        let response = request.send(client.clone()).await;
         assert!(response.is_ok());
 
         dbg!(response.unwrap());

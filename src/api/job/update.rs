@@ -5,21 +5,17 @@ use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
 pub struct JobUpdateBuilder {
-    handler: Arc<Client>,
     job_id: Option<String>,
     data_id: Option<String>,
     status: Option<String>,
-    job_status: Option<String>,
 }
 
 impl JobUpdateBuilder {
-    pub fn new(handler: Arc<Client>) -> JobUpdateBuilder {
+    pub fn new() -> JobUpdateBuilder {
         JobUpdateBuilder {
-            handler,
             job_id: None,
             data_id: None,
             status: None,
-            job_status: None,
         }
     }
 
@@ -27,14 +23,12 @@ impl JobUpdateBuilder {
         let job_id = self.job_id.with_context(|| "job_id is required")?;
         let data_id = self.data_id.with_context(|| "data_id is required")?;
         let status = self.status.with_context(|| "status is required")?;
-        let job_status = self.job_status.with_context(|| "job_status is required")?;
 
         Ok(JobUpdateRequest {
-            handler: self.handler,
             job_id,
             data_id,
+            job_status: status.clone(),
             status,
-            job_status,
         })
     }
 
@@ -52,42 +46,34 @@ impl JobUpdateBuilder {
         self.status = Some(status.into());
         self
     }
-
-    pub fn job_status(mut self, job_status: impl Into<String>) -> JobUpdateBuilder {
-        self.job_status = Some(job_status.into());
-        self
-    }
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, Debug)]
 pub struct JobUpdateRequest {
-    #[serde(skip_serializing)]
-    handler: Arc<Client>,
     #[serde(skip_serializing)]
     job_id: String,
     #[serde(rename = "output")]
     data_id: String,
-    status: String,
     #[serde(rename = "state")]
     job_status: String,
+    status: String,
 }
 
 impl JobUpdateRequest {
-    pub fn builder(handler: Arc<Client>) -> JobUpdateBuilder {
-        JobUpdateBuilder::new(handler)
+    pub fn builder() -> JobUpdateBuilder {
+        JobUpdateBuilder::new()
     }
 }
 
 impl MecrmRequest for JobUpdateRequest {
     type Response = JobUpdateResponse;
 
-    async fn send(&self) -> Result<JobUpdateResponse> {
+    async fn send(&self, client: Arc<Client>) -> Result<JobUpdateResponse> {
         let endpoint = format!("job/{}", self.job_id);
 
-        let response = self
-            .handler
+        let response = client
             .client()
-            .post(self.handler.host().join(&endpoint).unwrap())
+            .post(client.host().join(&endpoint).unwrap())
             .json(&self)
             .send()
             .await?;
@@ -96,7 +82,7 @@ impl MecrmRequest for JobUpdateRequest {
     }
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Debug)]
 pub struct JobUpdateResponse {
     pub code: i32,
     pub status: String,
