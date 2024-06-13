@@ -7,7 +7,8 @@ use mecrm_rs::Client;
 async fn main() {
     let client_arc = Arc::new(
         Client::builder()
-            .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
+            // .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
+            .host("http://192.168.168.127:8332/api/v0.5/")
             .build()
             .unwrap(),
     );
@@ -15,6 +16,9 @@ async fn main() {
     let client = client_arc.clone();
 
     let task = tokio::spawn(async move {
+        use std::time::Instant;
+        let start = Instant::now();
+
         let blob = DataUploadRequest::builder(client.clone())
             .data("input".into())
             .build()
@@ -67,7 +71,9 @@ async fn main() {
             .await
             .unwrap();
 
-        dbg!(output_blob)
+        dbg!(output_blob);
+
+        println!("Elapsed: {:?}", start.elapsed());
     });
 
     let client = client_arc.clone();
@@ -134,7 +140,9 @@ async fn main() {
             .send()
             .await
             .unwrap();
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 
     task.await.unwrap();
 }

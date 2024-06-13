@@ -20,8 +20,8 @@ impl Blob {
 }
 
 pub struct BlobBuilder {
-    client: Client,
-    data: Option<Vec<u8>>,
+    pub client: Client,
+    pub data: Option<Vec<u8>>,
 }
 
 impl ObjectBuilder for BlobBuilder {
