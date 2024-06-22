@@ -29,11 +29,3 @@ pub trait MecrmResponse {
         response: reqwest::Response,
     ) -> impl std::future::Future<Output = Result<Self::Response>> + Send;
 }
-
-// pub enum ApiResult<T>
-// where
-//     T: MecrmResponse,
-// {
-//     Success(T),
-//     Error(T),
-// }

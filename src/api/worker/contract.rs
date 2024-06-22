@@ -1,17 +1,18 @@
 use anyhow::{Context, Result};
+use std::borrow::Cow;
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
-pub struct WorkerContractBuilder {
-    worker_id: Option<String>,
-    tags: Option<Vec<String>>,
+pub struct WorkerContractBuilder<'a> {
+    worker_id: Option<Cow<'a, str>>,
+    tags: Option<Vec<Cow<'a, str>>>,
     timeout: Option<u32>,
 }
 
-impl WorkerContractBuilder {
-    pub fn new() -> WorkerContractBuilder {
+impl<'a> WorkerContractBuilder<'a> {
+    pub fn new() -> WorkerContractBuilder<'a> {
         WorkerContractBuilder {
             worker_id: None,
             tags: None,
@@ -19,7 +20,7 @@ impl WorkerContractBuilder {
         }
     }
 
-    pub fn build(self) -> Result<WorkerContractRequest> {
+    pub fn build(self) -> Result<WorkerContractRequest<'a>> {
         let worker_id = self.worker_id.with_context(|| "worker_id is required")?;
         let tags = self.tags.unwrap_or_default();
         let timeout = self.timeout.unwrap_or(0);
@@ -31,37 +32,37 @@ impl WorkerContractBuilder {
         })
     }
 
-    pub fn worker_id(mut self, worker_id: impl Into<String>) -> WorkerContractBuilder {
+    pub fn worker_id(mut self, worker_id: impl Into<Cow<'a, str>>) -> WorkerContractBuilder<'a> {
         self.worker_id = Some(worker_id.into());
         self
     }
 
-    pub fn tags(mut self, tags: Vec<String>) -> WorkerContractBuilder {
+    pub fn tags(mut self, tags: Vec<Cow<'a, str>>) -> WorkerContractBuilder<'a> {
         self.tags = Some(tags);
         self
     }
 
-    pub fn timeout(mut self, timeout: u32) -> WorkerContractBuilder {
+    pub fn timeout(mut self, timeout: u32) -> WorkerContractBuilder<'a> {
         self.timeout = Some(timeout);
         self
     }
 }
 
 #[derive(serde::Serialize, Debug)]
-pub struct WorkerContractRequest {
+pub struct WorkerContractRequest<'a> {
     #[serde(rename = "id")]
-    worker_id: String,
-    tags: Vec<String>,
+    worker_id: Cow<'a, str>,
+    tags: Vec<Cow<'a, str>>,
     timeout: u32,
 }
 
-impl WorkerContractRequest {
-    pub fn builder() -> WorkerContractBuilder {
+impl<'a> WorkerContractRequest<'a> {
+    pub fn builder() -> WorkerContractBuilder<'a> {
         WorkerContractBuilder::new()
     }
 }
 
-impl MecrmRequest for WorkerContractRequest {
+impl<'a> MecrmRequest for WorkerContractRequest<'a> {
     type Response = WorkerContractResponse;
 
     async fn send(&self, client: &Arc<Client>) -> Result<WorkerContractResponse> {

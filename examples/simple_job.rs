@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
-use mecrm_rs::api::*;
-use mecrm_rs::Client;
+use mecrs::api::*;
+use mecrs::Client;
 
 #[tokio::main]
 async fn main() {
     let client_arc = Arc::new(
         Client::builder()
-            // .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
-            .host("http://192.168.168.127:8332/api/v0.5/")
+            .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
+            // .host("http://192.168.168.127:8332/api/v0.5/")
             .build()
             .unwrap(),
     );
@@ -20,7 +20,7 @@ async fn main() {
         let start = Instant::now();
 
         let blob = DataUploadRequest::builder()
-            .data("input".into())
+            .data(b"input")
             .build()
             .unwrap()
             .send(&client)
@@ -121,7 +121,7 @@ async fn main() {
         // dbg!(&input_blob);
 
         let output_blob = DataUploadRequest::builder()
-            .data("output".into())
+            .data(b"output")
             .build()
             .unwrap()
             .send(&client)

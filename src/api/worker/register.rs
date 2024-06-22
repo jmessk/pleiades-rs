@@ -1,43 +1,44 @@
 use anyhow::{Context, Result};
+use std::borrow::Cow;
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
-pub struct WorkerRegisterBuilder {
-    runtimes: Option<Vec<String>>,
+pub struct WorkerRegisterBuilder<'a> {
+    runtimes: Option<Vec<Cow<'a, str>>>,
 }
 
-impl WorkerRegisterBuilder {
-    pub fn new() -> WorkerRegisterBuilder {
+impl<'a> WorkerRegisterBuilder<'a> {
+    pub fn new() -> WorkerRegisterBuilder<'a> {
         WorkerRegisterBuilder { runtimes: None }
     }
 
-    pub fn build(self) -> Result<WorkerRegisterRequest> {
+    pub fn build(self) -> Result<WorkerRegisterRequest<'a>> {
         let runtimes = self.runtimes.with_context(|| "runtimes is required")?;
 
         Ok(WorkerRegisterRequest { runtimes })
     }
 
-    pub fn runtimes(mut self, runtimes: Vec<String>) -> WorkerRegisterBuilder {
+    pub fn runtimes(mut self, runtimes: Vec<Cow<'a, str>>) -> WorkerRegisterBuilder<'a> {
         self.runtimes = Some(runtimes);
         self
     }
 }
 
 #[derive(serde::Serialize, Debug)]
-pub struct WorkerRegisterRequest {
+pub struct WorkerRegisterRequest<'a> {
     #[serde(rename = "runtime")]
-    runtimes: Vec<String>,
+    runtimes: Vec<Cow<'a, str>>,
 }
 
-impl WorkerRegisterRequest {
-    pub fn builder() -> WorkerRegisterBuilder {
+impl<'a> WorkerRegisterRequest<'a> {
+    pub fn builder() -> WorkerRegisterBuilder<'a> {
         WorkerRegisterBuilder::new()
     }
 }
 
-impl MecrmRequest for WorkerRegisterRequest {
+impl<'a> MecrmRequest for WorkerRegisterRequest<'a> {
     type Response = WorkerRegisterResponse;
 
     async fn send(&self, client: &Arc<Client>) -> Result<WorkerRegisterResponse> {
@@ -90,7 +91,7 @@ mod tests {
         let client = Arc::new(client);
 
         let request = WorkerRegisterRequest::builder()
-            .runtimes(vec!["test1".to_string(), "test2".to_string()])
+            .runtimes(vec!["test1".into(), "test2".into()])
             .build()
             .unwrap();
 

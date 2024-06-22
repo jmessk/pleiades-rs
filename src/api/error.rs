@@ -4,9 +4,9 @@ use crate::api::MecrmResponse;
 
 #[derive(serde::Deserialize)]
 pub struct ErrorResponse {
-    code: i32,
-    status: String,
-    message: String,
+    pub code: i32,
+    pub status: String,
+    pub message: String,
 }
 
 impl MecrmResponse for ErrorResponse {

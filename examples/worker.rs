@@ -2,8 +2,8 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::Result;
-use mecrm_rs::api::*;
-use mecrm_rs::Client;
+use mecrs::api::*;
+use mecrs::Client;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -16,7 +16,7 @@ async fn main() -> anyhow::Result<()> {
     );
 
     let worker_register = WorkerRegisterRequest::builder()
-        .runtimes(vec!["mecrm-rs".to_string()])
+        .runtimes(vec!["mecrm-rs".into()])
         .build()?
         .send(&client)
         .await?;
@@ -39,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
         }
 
         count = 0;
-        
+
         let job_id = contracted.job_id.unwrap();
         let client = client.clone();
         tokio::spawn(async move {
@@ -68,7 +68,7 @@ async fn worker(client: Arc<Client>, job_id: String) -> Result<()> {
     // dbg!(&input_blob);
 
     let output_blob = DataUploadRequest::builder()
-        .data("".into())
+        .data(b"")
         .build()?
         .send(&client)
         .await?;

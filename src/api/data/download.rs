@@ -1,48 +1,49 @@
 use anyhow::{Context, Result};
 use bytes::Bytes;
+use std::borrow::Cow;
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
-pub struct DataDownloadBuilder {
-    data_id: Option<String>,
+pub struct DataDownloadBuilder<'a> {
+    data_id: Option<Cow<'a, str>>,
 }
 
-impl DataDownloadBuilder {
-    pub fn new() -> DataDownloadBuilder {
+impl<'a> DataDownloadBuilder<'a> {
+    pub fn new() -> DataDownloadBuilder<'a> {
         DataDownloadBuilder { data_id: None }
     }
 
-    pub fn build(self) -> Result<DataDownloadRequest> {
+    pub fn build(self) -> Result<DataDownloadRequest<'a>> {
         let data_id = self.data_id.with_context(|| "data_id is required")?;
 
         Ok(DataDownloadRequest { data_id })
     }
 
-    pub fn data_id(mut self, data_id: impl Into<String>) -> DataDownloadBuilder {
+    pub fn data_id(mut self, data_id: impl Into<Cow<'a, str>>) -> DataDownloadBuilder<'a> {
         self.data_id = Some(data_id.into());
         self
     }
 }
 
 #[derive(Debug)]
-pub struct DataDownloadRequest {
-    data_id: String,
+pub struct DataDownloadRequest<'a> {
+    data_id: Cow<'a, str>,
 }
 
-impl DataDownloadRequest {
-    pub fn builder() -> DataDownloadBuilder {
+impl<'a> DataDownloadRequest<'a> {
+    pub fn builder() -> DataDownloadBuilder<'a> {
         DataDownloadBuilder::new()
     }
 }
 
-impl MecrmRequest for DataDownloadRequest {
+impl<'a> MecrmRequest for DataDownloadRequest<'a> {
     type Response = DataDownloadResponse;
 
     async fn send(&self, client: &Arc<Client>) -> Result<DataDownloadResponse> {
         let endpoint = format!("data/{}/blob", self.data_id);
-        
+
         let response = client
             .client()
             .get(client.host().join(&endpoint).unwrap())

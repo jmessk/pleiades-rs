@@ -1,45 +1,45 @@
 use anyhow::{Context, Result};
-use bytes::Bytes;
 use reqwest::multipart;
+use std::borrow::Cow;
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
-pub struct DataUploadBuilder {
-    data: Option<Bytes>,
+pub struct DataUploadBuilder<'a> {
+    data: Option<Cow<'a, [u8]>>,
 }
 
-impl DataUploadBuilder {
-    pub fn new() -> DataUploadBuilder {
+impl<'a> DataUploadBuilder<'a> {
+    pub fn new() -> DataUploadBuilder<'a> {
         DataUploadBuilder { data: None }
     }
 
-    pub fn build(self) -> Result<DataUploadRequest> {
+    pub fn build(self) -> Result<DataUploadRequest<'a>> {
         let data = self.data.with_context(|| "data is required")?;
 
         Ok(DataUploadRequest { data })
     }
 
-    pub fn data(mut self, data: Bytes) -> DataUploadBuilder {
-        self.data = Some(data);
+    pub fn data(mut self, data: impl Into<Cow<'a, [u8]>>) -> DataUploadBuilder<'a> {
+        self.data = Some(data.into());
         self
     }
 }
 
 /// Request to upload data
 #[derive(Debug)]
-pub struct DataUploadRequest {
-    data: Bytes,
+pub struct DataUploadRequest<'a> {
+    data: Cow<'a, [u8]>,
 }
 
-impl DataUploadRequest {
-    pub fn builder() -> DataUploadBuilder {
+impl<'a> DataUploadRequest<'a> {
+    pub fn builder() -> DataUploadBuilder<'a> {
         DataUploadBuilder::new()
     }
 }
 
-impl MecrmRequest for DataUploadRequest {
+impl<'a> MecrmRequest for DataUploadRequest<'a> {
     type Response = DataUploadResponse;
 
     async fn send(&self, client: &Arc<Client>) -> Result<DataUploadResponse> {
@@ -97,7 +97,7 @@ mod tests {
         let client = Arc::new(client);
 
         let request = DataUploadRequest::builder()
-            .data(Bytes::from_static(b"hello world"))
+            .data(b"hello world")
             .build()
             .unwrap();
 

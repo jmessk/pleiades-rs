@@ -1,54 +1,55 @@
 use anyhow::{Context, Result};
+use std::borrow::Cow;
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
-pub struct LambdaCreateBuilder {
-    data_id: Option<String>,
-    runtime: Option<String>,
+pub struct LambdaCreateBuilder<'a> {
+    data_id: Option<Cow<'a, str>>,
+    runtime: Option<Cow<'a, str>>,
 }
 
-impl LambdaCreateBuilder {
-    pub fn new() -> LambdaCreateBuilder {
+impl<'a> LambdaCreateBuilder<'a> {
+    pub fn new() -> LambdaCreateBuilder<'a> {
         LambdaCreateBuilder {
             data_id: None,
             runtime: None,
         }
     }
 
-    pub fn build(self) -> Result<LambdaCreateRequest> {
+    pub fn build(self) -> Result<LambdaCreateRequest<'a>> {
         let data_id = self.data_id.with_context(|| "data_id is required")?;
         let runtime = self.runtime.with_context(|| "runtime is required")?;
 
         Ok(LambdaCreateRequest { data_id, runtime })
     }
 
-    pub fn data_id(mut self, data_id: impl Into<String>) -> LambdaCreateBuilder {
+    pub fn data_id(mut self, data_id: impl Into<Cow<'a, str>>) -> LambdaCreateBuilder<'a> {
         self.data_id = Some(data_id.into());
         self
     }
 
-    pub fn runtime(mut self, runtime: impl Into<String>) -> LambdaCreateBuilder {
+    pub fn runtime(mut self, runtime: impl Into<Cow<'a, str>>) -> LambdaCreateBuilder<'a> {
         self.runtime = Some(runtime.into());
         self
     }
 }
 
 #[derive(serde::Serialize, Debug)]
-pub struct LambdaCreateRequest {
+pub struct LambdaCreateRequest<'a> {
     #[serde(rename = "codex")]
-    data_id: String,
-    runtime: String,
+    data_id: Cow<'a, str>,
+    runtime: Cow<'a, str>,
 }
 
-impl LambdaCreateRequest {
-    pub fn builder() -> LambdaCreateBuilder {
+impl<'a> LambdaCreateRequest<'a> {
+    pub fn builder() -> LambdaCreateBuilder<'a> {
         LambdaCreateBuilder::new()
     }
 }
 
-impl MecrmRequest for LambdaCreateRequest {
+impl<'a> MecrmRequest for LambdaCreateRequest<'a> {
     type Response = LambdaCreateResponse;
 
     async fn send(&self, client: &Arc<Client>) -> Result<LambdaCreateResponse> {

@@ -3,8 +3,8 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::Result;
-use mecrm_rs::api::*;
-use mecrm_rs::Client;
+use mecrs::api::*;
+use mecrs::Client;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -16,6 +16,9 @@ async fn main() -> anyhow::Result<()> {
             .build()?,
     );
 
+    // job_num is the number of jobs to be created
+    // if not provided, default to 10
+    // Usage: ./requester <job_num>
     let job_num: usize = {
         let args: Vec<String> = env::args().collect();
         if 3 < args.len() {
@@ -44,37 +47,36 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn requester(client: Arc<Client>) -> Result<()> {
-    let start_job = Instant::now();
+    // let start_job = Instant::now();
 
     let lambda_blob = DataUploadRequest::builder()
-        .data("".into())
+        .data(b"")
         .build()?
         .send(&client)
         .await?;
 
     let lambda = LambdaCreateRequest::builder()
-        .data_id(&lambda_blob.data_id)
-        .runtime("mecrm-rs")
-        // .runtime("bench+pymec")
+        .data_id(lambda_blob.data_id)
+        .runtime("mecrs")
         .build()?
         .send(&client)
         .await?;
 
     let input_blob = DataUploadRequest::builder()
-        .data("".into())
+        .data(b"")
         .build()?
         .send(&client)
         .await?;
 
-    let job = JobCreateRequest::builder()
+    let job_create = JobCreateRequest::builder()
         .lambda_id(lambda.lambda_id)
-        .data_id(&input_blob.data_id)
+        .data_id(input_blob.data_id)
         .build()?
         .send(&client)
         .await?;
 
     let job_info = JobInfoRequest::builder()
-        .job_id(&job.job_id)
+        .job_id(job_create.job_id)
         .except("Finished")
         .timeout(10)
         .build()?
@@ -82,15 +84,10 @@ async fn requester(client: Arc<Client>) -> Result<()> {
         .await?;
 
     let _ = DataDownloadRequest::builder()
-        .data_id(&job_info.output.unwrap().data_id)
+        .data_id(job_info.output.unwrap().data_id)
         .build()?
         .send(&client)
         .await?;
 
-    println!(
-        "Job {} finished, elapsed: {:?}",
-        job.job_id,
-        start_job.elapsed()
-    );
     Ok(())
 }

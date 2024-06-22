@@ -1,17 +1,18 @@
 use anyhow::{Context, Result};
+use std::borrow::Cow;
 use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
-pub struct JobInfoBuilder {
-    job_id: Option<String>,
-    except: Option<String>,
+pub struct JobInfoBuilder<'a> {
+    job_id: Option<Cow<'a, str>>,
+    except: Option<Cow<'a, str>>,
     timeout: Option<u32>,
 }
 
-impl JobInfoBuilder {
-    pub fn new() -> JobInfoBuilder {
+impl<'a> JobInfoBuilder<'a> {
+    pub fn new() -> JobInfoBuilder<'a> {
         JobInfoBuilder {
             job_id: None,
             except: None,
@@ -19,7 +20,7 @@ impl JobInfoBuilder {
         }
     }
 
-    pub fn build(self) -> Result<JobInfoRequest> {
+    pub fn build(self) -> Result<JobInfoRequest<'a>> {
         let job_id = self.job_id.with_context(|| "job_id is required")?;
 
         Ok(JobInfoRequest {
@@ -29,36 +30,36 @@ impl JobInfoBuilder {
         })
     }
 
-    pub fn job_id(mut self, job_id: impl Into<String>) -> JobInfoBuilder {
+    pub fn job_id(mut self, job_id: impl Into<Cow<'a, str>>) -> JobInfoBuilder<'a> {
         self.job_id = Some(job_id.into());
         self
     }
 
-    pub fn except(mut self, except: impl Into<String>) -> JobInfoBuilder {
+    pub fn except(mut self, except: impl Into<Cow<'a, str>>) -> JobInfoBuilder<'a> {
         self.except = Some(except.into());
         self
     }
 
-    pub fn timeout(mut self, timeout: u32) -> JobInfoBuilder {
+    pub fn timeout(mut self, timeout: u32) -> JobInfoBuilder<'a> {
         self.timeout = Some(timeout);
         self
     }
 }
 
 #[derive(Debug)]
-pub struct JobInfoRequest {
-    job_id: String,
-    except: Option<String>,
+pub struct JobInfoRequest<'a> {
+    job_id: Cow<'a, str>,
+    except: Option<Cow<'a, str>>,
     timeout: Option<u32>,
 }
 
-impl JobInfoRequest {
-    pub fn builder() -> JobInfoBuilder {
+impl<'a> JobInfoRequest<'a> {
+    pub fn builder() -> JobInfoBuilder<'a> {
         JobInfoBuilder::new()
     }
 }
 
-impl MecrmRequest for JobInfoRequest {
+impl<'a> MecrmRequest for JobInfoRequest<'a> {
     type Response = JobInfoResponse;
 
     async fn send(&self, client: &Arc<Client>) -> Result<JobInfoResponse> {
