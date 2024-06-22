@@ -129,6 +129,6 @@ impl MecrmResponse for JobInfoResponse {
         response
             .json()
             .await
-            .with_context(|| "Failed to parse response")
+            .with_context(|| "failed to get job info")
     }
 }

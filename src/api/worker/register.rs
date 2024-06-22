@@ -72,7 +72,7 @@ impl MecrmResponse for WorkerRegisterResponse {
         response
             .json()
             .await
-            .with_context(|| "Failed to parse response")
+            .with_context(|| "failed to register worker")
     }
 }
 

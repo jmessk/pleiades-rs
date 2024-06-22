@@ -81,7 +81,7 @@ impl MecrmResponse for LambdaCreateResponse {
         response
             .json()
             .await
-            .with_context(|| "Failed to parse response")
+            .with_context(|| "failed to create lambda")
     }
 }
 

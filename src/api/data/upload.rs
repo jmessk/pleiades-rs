@@ -78,7 +78,7 @@ impl MecrmResponse for DataUploadResponse {
         response
             .json()
             .await
-            .with_context(|| "Failed to parse response")
+            .with_context(|| "failed to upload data")
     }
 }
 

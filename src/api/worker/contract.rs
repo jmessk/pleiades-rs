@@ -94,6 +94,6 @@ impl MecrmResponse for WorkerContractResponse {
         response
             .json()
             .await
-            .with_context(|| "Failed to parse response")
+            .with_context(|| "failed to worker contract job")
     }
 }

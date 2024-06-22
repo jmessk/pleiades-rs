@@ -95,6 +95,6 @@ impl MecrmResponse for JobCreateResponse {
         response
             .json()
             .await
-            .with_context(|| "Failed to parse response")
+            .with_context(|| "failed to create job")
     }
 }

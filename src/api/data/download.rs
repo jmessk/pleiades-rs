@@ -71,13 +71,13 @@ impl MecrmResponse for DataDownloadResponse {
                 }
                 _ => {
                     let error = response.text().await?;
-                    log::error!("Failed to download data: {}", error);
-                    bail!("Failed to download data")
+                    log::error!("failed to download data: {}", error);
+                    bail!("failed to download data")
                 }
             },
             None => {
                 let error = response.text().await?;
-                Err(anyhow::anyhow!("Error: {}", error))
+                Err(anyhow::anyhow!("frror: {}", error))
             }
         }
     }
