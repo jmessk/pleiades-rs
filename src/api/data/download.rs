@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use bytes::Bytes;
 use std::borrow::Cow;
 use std::sync::Arc;
@@ -63,9 +63,23 @@ impl MecrmResponse for DataDownloadResponse {
     type Response = DataDownloadResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<DataDownloadResponse> {
-        Ok(DataDownloadResponse {
-            data: response.bytes().await?,
-        })
+        match response.headers().get("content-type") {
+            Some(content_type) => match content_type.to_str()? {
+                "application/octet-stream" => {
+                    let data = response.bytes().await?;
+                    Ok(DataDownloadResponse { data })
+                }
+                _ => {
+                    let error = response.text().await?;
+                    log::error!("Failed to download data: {}", error);
+                    bail!("Failed to download data")
+                }
+            },
+            None => {
+                let error = response.text().await?;
+                Err(anyhow::anyhow!("Error: {}", error))
+            }
+        }
     }
 }
 
@@ -82,9 +96,11 @@ mod tests {
 
         let client = Arc::new(client);
 
-        let request = DataDownloadRequest::builder().data_id("0").build().unwrap();
+        let request = DataDownloadRequest::builder().data_id("1").build().unwrap();
 
         let response = request.send(&client).await;
+        dbg!(&response);
+
         assert!(response.is_ok());
     }
 }
