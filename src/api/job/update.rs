@@ -16,7 +16,6 @@ pub struct JobUpdateRequest<'a> {
     data_id: Cow<'a, str>,
 
     #[builder(setter(into))]
-    #[serde(rename = "state")]
     status: Cow<'a, str>,
 }
 

@@ -8,8 +8,8 @@ async fn main() {
     let client_arc = Arc::new(
         Client::builder()
             // .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
-            // .host("http://192.168.168.127:8332/api/v0.5/")
-            .host("http://172.21.39.32:8332/api/v0.5/")
+            .host("http://192.168.168.127:8332/api/v0.5/")
+            // .host("http://172.21.39.32:8332/api/v0.5/")
             .build(),
     );
 
@@ -25,7 +25,7 @@ async fn main() {
             .await
             .unwrap();
 
-        dbg!(&blob);
+        // dbg!(&blob);
 
         let lambda = LambdaCreateRequest::builder()
             .data_id(&blob.data_id)
@@ -35,7 +35,7 @@ async fn main() {
             .await
             .unwrap();
 
-        dbg!(&lambda);
+        // dbg!(&lambda);
 
         let job = JobCreateRequest::builder()
             .data_id(&blob.data_id)
@@ -45,7 +45,7 @@ async fn main() {
             .await
             .unwrap();
 
-        dbg!(&job);
+        // dbg!(&job);
 
         let job_info = JobInfoRequest::builder()
             .job_id(&job.job_id)
@@ -65,7 +65,7 @@ async fn main() {
             .await
             .unwrap();
 
-        dbg!(output_blob);
+        // dbg!(output_blob);
 
         println!("Elapsed: {:?}", start.elapsed());
     });
@@ -80,7 +80,7 @@ async fn main() {
             .await
             .unwrap();
 
-        dbg!(&worker);
+        // dbg!(&worker);
 
         let job = WorkerContractRequest::builder()
             .worker_id(&worker.worker_id)
@@ -90,7 +90,7 @@ async fn main() {
             .await
             .unwrap();
 
-        dbg!(&job);
+        // dbg!(&job);
 
         let job_info = JobInfoRequest::builder()
             .job_id(&job.job_id.unwrap())
@@ -99,7 +99,7 @@ async fn main() {
             .await
             .unwrap();
 
-        dbg!(&job_info);
+        // dbg!(&job_info);
 
         let input_blob = DataDownloadRequest::builder()
             .data_id(job_info.input.data_id)
@@ -108,7 +108,7 @@ async fn main() {
             .await
             .unwrap();
 
-        dbg!(&input_blob);
+        // dbg!(&input_blob);
 
         let output_blob = DataUploadRequest::builder()
             .data(b"output")
@@ -117,7 +117,7 @@ async fn main() {
             .await
             .unwrap();
 
-        dbg!(&output_blob);
+        // dbg!(&output_blob);
 
         let job_update = JobUpdateRequest::builder()
             .job_id(job_info.job_id)

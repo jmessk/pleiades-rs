@@ -78,8 +78,7 @@ mod tests {
     async fn test_data_upload() {
         let client = Client::builder()
             .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
-            .build()
-            .unwrap();
+            .build();
 
         let client = Arc::new(client);
 

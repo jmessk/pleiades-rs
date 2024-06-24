@@ -29,7 +29,7 @@ pub struct Client {
     #[builder(default = reqwest::Client::new())]
     client: reqwest::Client,
 
-    #[builder(setter(into = "into_url"))]
+    #[builder(setter(transform = |url: impl IntoUrl| url.into_url().expect("Invalid Host")))]
     host: url::Url,
 }
 
