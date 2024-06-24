@@ -6,8 +6,24 @@ use std::sync::Arc;
 use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
+/// Request to download byte data
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use mecrs::api::data::download::DataDownloadRequest;
+/// use bytes::Bytes;
+/// 
+/// let request = DataDownloadRequest::builder()
+///     .data_id("1")
+///     .build();
+/// 
+/// let response = request.send(&client).await?;
+/// let data: Bytes = response.data;
+/// ```
 #[derive(Debug, typed_builder::TypedBuilder)]
 pub struct DataDownloadRequest<'a> {
+    /// blob data ID to download
     #[builder(setter(into))]
     data_id: Cow<'a, str>,
 }
@@ -32,8 +48,10 @@ impl<'a> MecrmRequest for DataDownloadRequest<'a> {
     }
 }
 
+/// Response from downloading blob data
 #[derive(Debug)]
 pub struct DataDownloadResponse {
+    /// downloaded data
     pub data: Bytes,
 }
 

@@ -5,8 +5,22 @@ use std::sync::Arc;
 use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
+/// Request to register a worker
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use mecrs::api::worker::register::WorkerRegisterRequest;
+/// 
+/// let request = WorkerRegisterRequest::builder()
+///     .runtimes(vec!["test1".into(), "test2".into()])
+///     .build();
+/// 
+/// let response = request.send(&client).await?;
+/// ```
 #[derive(serde::Serialize, Debug, typed_builder::TypedBuilder)]
 pub struct WorkerRegisterRequest<'a> {
+    /// runtimes that the worker supports
     #[serde(rename = "runtime")]
     runtimes: Vec<Cow<'a, str>>,
 }
@@ -32,12 +46,17 @@ impl<'a> MecrmRequest for WorkerRegisterRequest<'a> {
     }
 }
 
+/// Response from registering a worker
 #[derive(serde::Deserialize, Debug)]
 pub struct WorkerRegisterResponse {
     pub code: u32,
     pub status: String,
+
+    /// worker ID
     #[serde(rename = "id")]
     pub worker_id: String,
+
+    /// runtimes that the worker supports
     #[serde(rename = "runtime")]
     pub runtimes: Vec<String>,
 }
@@ -77,7 +96,7 @@ mod tests {
         let client = Arc::new(client);
 
         let request = WorkerRegisterRequest::builder()
-            .runtimes(vec!["test1".into(), "test2".into()])
+            .runtimes(vec!["mecrs+test1".into(), "mecrs+test2".into()])
             .build();
 
         dbg!(&request);

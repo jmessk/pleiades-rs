@@ -6,14 +6,26 @@ use std::sync::Arc;
 use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
-/// Request to upload data
+/// Request to upload byte data
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use mecrs::api::data::upload::DataUploadRequest;
+/// 
+/// let request = DataUploadRequest::builder()
+///    .data(b"hello world")
+///    .build();
+/// 
+/// let response = request.send(&client).await?;
+/// let data_id = response.data_id;
+/// ```
 #[derive(Debug, typed_builder::TypedBuilder)]
 pub struct DataUploadRequest<'a> {
+    /// byte data to upload
     #[builder(setter(into))]
     data: Cow<'a, [u8]>,
 }
-
-impl<'a> DataUploadRequest<'a> {}
 
 impl<'a> MecrmRequest for DataUploadRequest<'a> {
     type Response = DataUploadResponse;
@@ -46,6 +58,8 @@ impl<'a> MecrmRequest for DataUploadRequest<'a> {
 pub struct DataUploadResponse {
     pub code: u32,
     pub status: String,
+
+    /// uploaded blob data ID
     #[serde(rename = "id")]
     pub data_id: String,
     pub checksum: String,

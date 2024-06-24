@@ -6,13 +6,13 @@ use mecrs::Client;
 #[tokio::main]
 async fn main() {
     // logger
-    std::env::set_var("RUST_LOG", "info");
+    std::env::set_var("RUST_LOG", "debug");
     env_logger::init();
 
     let client_arc = Arc::new(
         Client::builder()
-            // .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
-            .host("http://192.168.168.127:8332/api/v0.5/")
+            .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
+            // .host("http://192.168.168.127:8332/api/v0.5/")
             // .host("http://172.21.39.32:8332/api/v0.5/")
             .build(),
     );

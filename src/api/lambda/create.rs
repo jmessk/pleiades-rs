@@ -5,12 +5,29 @@ use std::sync::Arc;
 use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
+/// Request to create a lambda
+/// 
+/// # Example
+/// 
+/// ```rust
+/// use mecrs::api::lambda::create::LambdaCreateRequest;
+/// 
+/// let request = LambdaCreateRequest::builder()
+///     .data_id("1")
+///     .runtime("mecrs+test")
+///     .build();
+/// 
+/// let response = request.send(&client).await?;
+/// let lambda_id = response.lambda_id;
+/// ```
 #[derive(serde::Serialize, Debug, typed_builder::TypedBuilder)]
 pub struct LambdaCreateRequest<'a> {
+    /// blob data id as lambda code
     #[builder(setter(into))]
     #[serde(rename = "codex")]
     data_id: Cow<'a, str>,
 
+    /// runtime that supports the lambda
     #[builder(setter(into))]
     runtime: Cow<'a, str>,
 }
@@ -36,10 +53,13 @@ impl<'a> MecrmRequest for LambdaCreateRequest<'a> {
     }
 }
 
+/// Response from creating a lambda
 #[derive(serde::Deserialize, Debug)]
 pub struct LambdaCreateResponse {
     pub code: u32,
     pub status: String,
+
+    /// created lambda ID
     #[serde(rename = "id")]
     pub lambda_id: String,
 }
