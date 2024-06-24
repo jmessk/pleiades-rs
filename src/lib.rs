@@ -24,17 +24,16 @@ pub trait ObjectBuilder {
     // fn id(self, id: impl Into<String>) -> Self::Output;
 }
 
-#[derive(Debug)]
+#[derive(Debug, typed_builder::TypedBuilder)]
 pub struct Client {
+    #[builder(default = reqwest::Client::new())]
     client: reqwest::Client,
+
+    #[builder(setter(into = "into_url"))]
     host: url::Url,
 }
 
 impl Client {
-    pub fn builder() -> ClientBuilder {
-        ClientBuilder::new()
-    }
-
     pub fn client(&self) -> &reqwest::Client {
         &self.client
     }
@@ -44,33 +43,33 @@ impl Client {
     }
 }
 
-pub struct ClientBuilder {
-    host: Option<url::Url>,
-    client: Option<reqwest::Client>,
-}
+// pub struct ClientBuilder {
+//     host: Option<url::Url>,
+//     client: Option<reqwest::Client>,
+// }
 
-impl ClientBuilder {
-    pub fn new() -> ClientBuilder {
-        ClientBuilder {
-            host: None,
-            client: None,
-        }
-    }
+// impl ClientBuilder {
+//     pub fn new() -> ClientBuilder {
+//         ClientBuilder {
+//             host: None,
+//             client: None,
+//         }
+//     }
 
-    pub fn client(mut self, client: reqwest::Client) -> ClientBuilder {
-        self.client = Some(client);
-        self
-    }
+//     pub fn client(mut self, client: reqwest::Client) -> ClientBuilder {
+//         self.client = Some(client);
+//         self
+//     }
 
-    pub fn host(mut self, host: impl IntoUrl) -> ClientBuilder {
-        self.host = Some(host.into_url().expect("Invalid Host"));
-        self
-    }
+//     pub fn host(mut self, host: impl IntoUrl) -> ClientBuilder {
+//         self.host = Some(host.into_url().expect("Invalid Host"));
+//         self
+//     }
 
-    pub fn build(self) -> Result<Client> {
-        Ok(Client {
-            host: self.host.with_context(|| "Host is required")?,
-            client: self.client.unwrap_or_else(|| reqwest::Client::new()),
-        })
-    }
-}
+//     pub fn build(self) -> Result<Client> {
+//         Ok(Client {
+//             host: self.host.with_context(|| "Host is required")?,
+//             client: self.client.unwrap_or_else(|| reqwest::Client::new()),
+//         })
+//     }
+// }

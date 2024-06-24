@@ -17,6 +17,9 @@ use std::sync::Arc;
 
 pub trait MecrmRequest {
     type Response: MecrmResponse;
+
+    fn endpoint(&self, host: &url::Url) -> url::Url;
+
     fn send(
         &self,
         client: &Arc<Client>,

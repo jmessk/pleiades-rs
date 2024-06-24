@@ -5,71 +5,31 @@ use std::sync::Arc;
 use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
-pub struct JobInfoBuilder<'a> {
-    job_id: Option<Cow<'a, str>>,
-    except: Option<Cow<'a, str>>,
-    timeout: Option<u32>,
-}
-
-impl<'a> JobInfoBuilder<'a> {
-    pub fn new() -> JobInfoBuilder<'a> {
-        JobInfoBuilder {
-            job_id: None,
-            except: None,
-            timeout: None,
-        }
-    }
-
-    pub fn build(self) -> Result<JobInfoRequest<'a>> {
-        let job_id = self.job_id.with_context(|| "job_id is required")?;
-
-        Ok(JobInfoRequest {
-            job_id,
-            except: self.except,
-            timeout: self.timeout,
-        })
-    }
-
-    pub fn job_id(mut self, job_id: impl Into<Cow<'a, str>>) -> JobInfoBuilder<'a> {
-        self.job_id = Some(job_id.into());
-        self
-    }
-
-    pub fn except(mut self, except: impl Into<Cow<'a, str>>) -> JobInfoBuilder<'a> {
-        self.except = Some(except.into());
-        self
-    }
-
-    pub fn timeout(mut self, timeout: u32) -> JobInfoBuilder<'a> {
-        self.timeout = Some(timeout);
-        self
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, typed_builder::TypedBuilder)]
 pub struct JobInfoRequest<'a> {
+    #[builder(setter(into))]
     job_id: Cow<'a, str>,
-    except: Option<Cow<'a, str>>,
-    timeout: Option<u32>,
-}
 
-impl<'a> JobInfoRequest<'a> {
-    pub fn builder() -> JobInfoBuilder<'a> {
-        JobInfoBuilder::new()
-    }
+    #[builder(default, setter(strip_option, into))]
+    except: Option<Cow<'a, str>>,
+
+    #[builder(default, setter(strip_option))]
+    timeout: Option<u32>,
 }
 
 impl<'a> MecrmRequest for JobInfoRequest<'a> {
     type Response = JobInfoResponse;
 
-    async fn send(&self, client: &Arc<Client>) -> Result<JobInfoResponse> {
-        let endpoint = format!("job/{}", self.job_id);
+    fn endpoint(&self, host: &url::Url) -> url::Url {
+        host.join(&format!("job/{}", self.job_id)).unwrap()
+    }
 
+    async fn send(&self, client: &Arc<Client>) -> Result<JobInfoResponse> {
         let response = match &self.except {
             Some(except) => {
                 client
                     .client()
-                    .get(client.host().join(&endpoint).unwrap())
+                    .get(self.endpoint(client.host()))
                     .query(&[("except", except)])
                     .query(&[("timeout", self.timeout)])
                     .send()
@@ -78,7 +38,7 @@ impl<'a> MecrmRequest for JobInfoRequest<'a> {
             None => {
                 client
                     .client()
-                    .get(client.host().join(&endpoint).unwrap())
+                    .get(self.endpoint(client.host()))
                     .send()
                     .await?
             }

@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{bail, Result};
 use reqwest::multipart;
 use std::borrow::Cow;
 use std::sync::Arc;
@@ -6,45 +6,23 @@ use std::sync::Arc;
 use crate::api::{MecrmRequest, MecrmResponse};
 use crate::Client;
 
-pub struct DataUploadBuilder<'a> {
-    data: Option<Cow<'a, [u8]>>,
-}
-
-impl<'a> DataUploadBuilder<'a> {
-    pub fn new() -> DataUploadBuilder<'a> {
-        DataUploadBuilder { data: None }
-    }
-
-    pub fn build(self) -> Result<DataUploadRequest<'a>> {
-        let data = self.data.with_context(|| "data is required")?;
-
-        Ok(DataUploadRequest { data })
-    }
-
-    pub fn data(mut self, data: impl Into<Cow<'a, [u8]>>) -> DataUploadBuilder<'a> {
-        self.data = Some(data.into());
-        self
-    }
-}
-
 /// Request to upload data
-#[derive(Debug)]
+#[derive(Debug, typed_builder::TypedBuilder)]
 pub struct DataUploadRequest<'a> {
+    #[builder(setter(into))]
     data: Cow<'a, [u8]>,
 }
 
-impl<'a> DataUploadRequest<'a> {
-    pub fn builder() -> DataUploadBuilder<'a> {
-        DataUploadBuilder::new()
-    }
-}
+impl<'a> DataUploadRequest<'a> {}
 
 impl<'a> MecrmRequest for DataUploadRequest<'a> {
     type Response = DataUploadResponse;
 
-    async fn send(&self, client: &Arc<Client>) -> Result<DataUploadResponse> {
-        let endpoint = "data";
+    fn endpoint(&self, host: &url::Url) -> url::Url {
+        host.join("data").unwrap()
+    }
 
+    async fn send(&self, client: &Arc<Client>) -> Result<DataUploadResponse> {
         let multipart = {
             let part = multipart::Part::bytes(self.data.to_vec()).file_name("data");
             multipart::Form::new().part("file", part)
@@ -52,7 +30,7 @@ impl<'a> MecrmRequest for DataUploadRequest<'a> {
 
         let response = client
             .client()
-            .post(client.host().join(endpoint).unwrap())
+            .post(self.endpoint(client.host()))
             .multipart(multipart)
             .send()
             .await?;
@@ -75,10 +53,19 @@ impl MecrmResponse for DataUploadResponse {
     type Response = DataUploadResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<DataUploadResponse> {
-        response
-            .json()
-            .await
-            .with_context(|| "failed to upload data")
+        let body = response.text().await?;
+
+        match serde_json::from_str(&body) {
+            Ok(response) => {
+                log::info!("data uploaded");
+                log::debug!("data uploaded: {}", body);
+                Ok(response)
+            }
+            Err(e) => {
+                log::error!("failed to parse response: {}", body);
+                bail!("failed to parse response: {}", e)
+            }
+        }
     }
 }
 
@@ -96,10 +83,7 @@ mod tests {
 
         let client = Arc::new(client);
 
-        let request = DataUploadRequest::builder()
-            .data(b"hello world")
-            .build()
-            .unwrap();
+        let request = DataUploadRequest::builder().data(b"hello world").build();
 
         let response = request.send(&client).await;
         assert!(response.is_ok());

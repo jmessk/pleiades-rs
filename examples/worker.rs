@@ -1,5 +1,4 @@
 use std::sync::Arc;
-use std::time::Instant;
 
 use anyhow::Result;
 use mecrs::api::*;
@@ -12,12 +11,12 @@ async fn main() -> anyhow::Result<()> {
         Client::builder()
             .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
             // .host("http://192.168.168.127:8332/api/v0.5/")
-            .build()?,
+            .build(),
     );
 
     let worker_register = WorkerRegisterRequest::builder()
         .runtimes(vec!["mecrm-rs".into()])
-        .build()?
+        .build()
         .send(&client)
         .await?;
 
@@ -29,7 +28,7 @@ async fn main() -> anyhow::Result<()> {
         let contracted = WorkerContractRequest::builder()
             .worker_id(&worker_register.worker_id)
             .timeout(5)
-            .build()?
+            .build()
             .send(&client)
             .await?;
 
@@ -53,7 +52,7 @@ async fn main() -> anyhow::Result<()> {
 async fn worker(client: Arc<Client>, job_id: String) -> Result<()> {
     let job_info = JobInfoRequest::builder()
         .job_id(&job_id)
-        .build()?
+        .build()
         .send(&client)
         .await?;
 
@@ -61,7 +60,7 @@ async fn worker(client: Arc<Client>, job_id: String) -> Result<()> {
 
     let _ = DataDownloadRequest::builder()
         .data_id(job_info.input.data_id)
-        .build()?
+        .build()
         .send(&client)
         .await?;
 
@@ -69,7 +68,7 @@ async fn worker(client: Arc<Client>, job_id: String) -> Result<()> {
 
     let output_blob = DataUploadRequest::builder()
         .data(b"")
-        .build()?
+        .build()
         .send(&client)
         .await?;
 
@@ -79,7 +78,7 @@ async fn worker(client: Arc<Client>, job_id: String) -> Result<()> {
         .job_id(job_info.job_id)
         .data_id(output_blob.data_id)
         .status("finished")
-        .build()?
+        .build()
         .send(&client)
         .await?;
 

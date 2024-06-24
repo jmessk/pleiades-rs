@@ -1,6 +1,5 @@
 use std::env;
 use std::sync::Arc;
-use std::time::Instant;
 
 use anyhow::Result;
 use mecrs::api::*;
@@ -13,7 +12,7 @@ async fn main() -> anyhow::Result<()> {
         Client::builder()
             .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
             // .host("http://192.168.168.127:8332/api/v0.5/")
-            .build()?,
+            .build(),
     );
 
     // job_num is the number of jobs to be created
@@ -51,27 +50,27 @@ async fn requester(client: Arc<Client>) -> Result<()> {
 
     let lambda_blob = DataUploadRequest::builder()
         .data(b"")
-        .build()?
+        .build()
         .send(&client)
         .await?;
 
     let lambda = LambdaCreateRequest::builder()
         .data_id(lambda_blob.data_id)
         .runtime("mecrs")
-        .build()?
+        .build()
         .send(&client)
         .await?;
 
     let input_blob = DataUploadRequest::builder()
         .data(b"")
-        .build()?
+        .build()
         .send(&client)
         .await?;
 
     let job_create = JobCreateRequest::builder()
         .lambda_id(lambda.lambda_id)
         .data_id(input_blob.data_id)
-        .build()?
+        .build()
         .send(&client)
         .await?;
 
@@ -79,13 +78,13 @@ async fn requester(client: Arc<Client>) -> Result<()> {
         .job_id(job_create.job_id)
         .except("Finished")
         .timeout(10)
-        .build()?
+        .build()
         .send(&client)
         .await?;
 
     let _ = DataDownloadRequest::builder()
         .data_id(job_info.output.unwrap().data_id)
-        .build()?
+        .build()
         .send(&client)
         .await?;
 
