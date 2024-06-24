@@ -54,14 +54,20 @@ impl MecrmResponse for WorkerContractResponse {
         let body = response.text().await?;
 
         match serde_json::from_str::<WorkerContractResponse>(&body) {
-            Ok(response) => {
-                log::info!(
-                    "worker contracted",
-                );
-                log::debug!("worker contracted: {}", body);
+            Ok(response) => match &response.job_id {
+                Some(job_id) => {
+                    log::info!("worker contracted: {}", job_id);
+                    log::debug!("worker contracted: {}", body);
 
-                Ok(response)
-            }
+                    Ok(response)
+                }
+                None => {
+                    log::info!("worker contracted no job");
+                    log::debug!("worker contracted no job: {}", body);
+
+                    Ok(response)
+                }
+            },
             Err(e) => {
                 log::error!("failed to contract worker: {}", body);
                 anyhow::bail!("failed to contract worker: {}", e)
