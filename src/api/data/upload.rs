@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::Result;
 use reqwest::multipart;
 use std::borrow::Cow;
 use std::sync::Arc;
@@ -23,6 +23,8 @@ impl<'a> MecrmRequest for DataUploadRequest<'a> {
     }
 
     async fn send(&self, client: &Arc<Client>) -> Result<DataUploadResponse> {
+        log::debug!("uploading data: {} bytes", self.data.len());
+
         let multipart = {
             let part = multipart::Part::bytes(self.data.to_vec()).file_name("data");
             multipart::Form::new().part("file", part)
@@ -59,11 +61,12 @@ impl MecrmResponse for DataUploadResponse {
             Ok(response) => {
                 log::info!("data uploaded");
                 log::debug!("data uploaded: {}", body);
+
                 Ok(response)
             }
             Err(e) => {
                 log::error!("failed to parse response: {}", body);
-                bail!("failed to parse response: {}", e)
+                anyhow::bail!("failed to parse response: {}", e)
             }
         }
     }

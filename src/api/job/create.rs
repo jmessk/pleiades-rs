@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::borrow::Cow;
 use std::sync::Arc;
 
@@ -27,6 +27,8 @@ impl<'a> MecrmRequest for JobCreateRequest<'a> {
     }
 
     async fn send(&self, client: &Arc<Client>) -> Result<JobCreateResponse> {
+        log::debug!("creating job: {:?}", self);
+
         let response = client
             .client()
             .post(self.endpoint(client.host()))
@@ -50,9 +52,19 @@ impl MecrmResponse for JobCreateResponse {
     type Response = JobCreateResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<JobCreateResponse> {
-        response
-            .json()
-            .await
-            .with_context(|| "failed to create job")
+        let body = response.text().await?;
+
+        match serde_json::from_str::<JobCreateResponse>(&body) {
+            Ok(response) => {
+                log::info!("job created");
+                log::debug!("job created: {}", body);
+
+                Ok(response)
+            }
+            Err(e) => {
+                log::error!("failed to create job: {}", body);
+                anyhow::bail!("failed to create job: {}", e)
+            }
+        }
     }
 }

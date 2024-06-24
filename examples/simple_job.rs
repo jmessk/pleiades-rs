@@ -5,6 +5,10 @@ use mecrs::Client;
 
 #[tokio::main]
 async fn main() {
+    // logger
+    std::env::set_var("RUST_LOG", "info");
+    env_logger::init();
+
     let client_arc = Arc::new(
         Client::builder()
             // .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
@@ -25,8 +29,6 @@ async fn main() {
             .await
             .unwrap();
 
-        // dbg!(&blob);
-
         let lambda = LambdaCreateRequest::builder()
             .data_id(&blob.data_id)
             .runtime("mecrm-rs")
@@ -35,8 +37,6 @@ async fn main() {
             .await
             .unwrap();
 
-        // dbg!(&lambda);
-
         let job = JobCreateRequest::builder()
             .data_id(&blob.data_id)
             .lambda_id(lambda.lambda_id)
@@ -44,8 +44,6 @@ async fn main() {
             .send(&client)
             .await
             .unwrap();
-
-        // dbg!(&job);
 
         let job_info = JobInfoRequest::builder()
             .job_id(&job.job_id)
@@ -56,16 +54,12 @@ async fn main() {
             .await
             .unwrap();
 
-        dbg!(&job_info);
-
-        let output_blob = DataDownloadRequest::builder()
+        let _output_blob = DataDownloadRequest::builder()
             .data_id(&job_info.output.unwrap().data_id)
             .build()
             .send(&client)
             .await
             .unwrap();
-
-        // dbg!(output_blob);
 
         println!("Elapsed: {:?}", start.elapsed());
     });
@@ -80,8 +74,6 @@ async fn main() {
             .await
             .unwrap();
 
-        // dbg!(&worker);
-
         let job = WorkerContractRequest::builder()
             .worker_id(&worker.worker_id)
             .timeout(10)
@@ -90,8 +82,6 @@ async fn main() {
             .await
             .unwrap();
 
-        // dbg!(&job);
-
         let job_info = JobInfoRequest::builder()
             .job_id(&job.job_id.unwrap())
             .build()
@@ -99,16 +89,12 @@ async fn main() {
             .await
             .unwrap();
 
-        // dbg!(&job_info);
-
-        let input_blob = DataDownloadRequest::builder()
+        let _input_blob = DataDownloadRequest::builder()
             .data_id(job_info.input.data_id)
             .build()
             .send(&client)
             .await
             .unwrap();
-
-        // dbg!(&input_blob);
 
         let output_blob = DataUploadRequest::builder()
             .data(b"output")
@@ -117,9 +103,7 @@ async fn main() {
             .await
             .unwrap();
 
-        // dbg!(&output_blob);
-
-        let job_update = JobUpdateRequest::builder()
+        let _job_update = JobUpdateRequest::builder()
             .job_id(job_info.job_id)
             .data_id(output_blob.data_id)
             .status("finished")
@@ -127,8 +111,6 @@ async fn main() {
             .send(&client)
             .await
             .unwrap();
-
-        dbg!(job_update);
     });
 
     requester_task.await.unwrap();

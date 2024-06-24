@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::borrow::Cow;
 use std::sync::Arc;
 
@@ -19,6 +19,8 @@ impl<'a> MecrmRequest for WorkerRegisterRequest<'a> {
     }
 
     async fn send(&self, client: &Arc<Client>) -> Result<WorkerRegisterResponse> {
+        log::debug!("registering worker: {:?}", self);
+
         let response = client
             .client()
             .post(self.endpoint(client.host()))
@@ -44,10 +46,20 @@ impl MecrmResponse for WorkerRegisterResponse {
     type Response = WorkerRegisterResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<WorkerRegisterResponse> {
-        response
-            .json()
-            .await
-            .with_context(|| "failed to register worker")
+        let body = response.text().await?;
+
+        match serde_json::from_str::<WorkerRegisterResponse>(&body) {
+            Ok(response) => {
+                log::info!("worker registered");
+                log::debug!("worker registered: {}", body);
+
+                Ok(response)
+            }
+            Err(e) => {
+                log::error!("failed to register worker: {}", body);
+                anyhow::bail!("failed to register worker: {}", e)
+            }
+        }
     }
 }
 

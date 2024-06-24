@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::borrow::Cow;
 use std::sync::Arc;
 
@@ -23,6 +23,8 @@ impl<'a> MecrmRequest for LambdaCreateRequest<'a> {
     }
 
     async fn send(&self, client: &Arc<Client>) -> Result<LambdaCreateResponse> {
+        log::debug!("creating lambda: {:?}", self);
+
         let response = client
             .client()
             .post(self.endpoint(client.host()))
@@ -46,10 +48,20 @@ impl MecrmResponse for LambdaCreateResponse {
     type Response = LambdaCreateResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<LambdaCreateResponse> {
-        response
-            .json()
-            .await
-            .with_context(|| "failed to create lambda")
+        let body = response.text().await?;
+
+        match serde_json::from_str::<LambdaCreateResponse>(&body) {
+            Ok(response) => {
+                log::info!("lambda created");
+                log::debug!("lambda created: {}", body);
+
+                Ok(response)
+            }
+            Err(e) => {
+                log::error!("failed to create lambda: {}", body);
+                anyhow::bail!("failed to create lambda: {}", e)
+            }
+        }
     }
 }
 

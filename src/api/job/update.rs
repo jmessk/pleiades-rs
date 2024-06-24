@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::borrow::Cow;
 use std::sync::Arc;
 
@@ -27,6 +27,8 @@ impl<'a> MecrmRequest for JobUpdateRequest<'a> {
     }
 
     async fn send(&self, client: &Arc<Client>) -> Result<JobUpdateResponse> {
+        log::debug!("updating job: {:?}", self);
+
         let response = client
             .client()
             .post(self.endpoint(client.host()))
@@ -49,9 +51,19 @@ impl MecrmResponse for JobUpdateResponse {
     type Response = JobUpdateResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<JobUpdateResponse> {
-        response
-            .json()
-            .await
-            .with_context(|| "failed to update job status")
+        let body = response.text().await?;
+
+        match serde_json::from_str::<JobUpdateResponse>(&body) {
+            Ok(response) => {
+                log::info!("job updated");
+                log::debug!("job updated: {}", body);
+
+                Ok(response)
+            }
+            Err(e) => {
+                log::error!("failed to update job: {}", body);
+                anyhow::bail!("failed to update job: {}", e);
+            }
+        }
     }
 }

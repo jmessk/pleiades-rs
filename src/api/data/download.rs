@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::Result;
 use bytes::Bytes;
 use std::borrow::Cow;
 use std::sync::Arc;
@@ -20,6 +20,8 @@ impl<'a> MecrmRequest for DataDownloadRequest<'a> {
     }
 
     async fn send(&self, client: &Arc<Client>) -> Result<DataDownloadResponse> {
+        log::debug!("downloading data: {}", self.data_id);
+
         let response = client
             .client()
             .get(self.endpoint(client.host()))
@@ -41,19 +43,29 @@ impl MecrmResponse for DataDownloadResponse {
     async fn from_response(response: reqwest::Response) -> Result<DataDownloadResponse> {
         match response.headers().get("content-type") {
             Some(content_type) => match content_type.to_str()? {
+                // application/octet-stream is the blob data
                 "application/octet-stream" => {
                     let data = response.bytes().await?;
+
+                    log::info!("data downloaded");
+                    log::debug!("downloaded {} bytes", data.len());
+
                     Ok(DataDownloadResponse { data })
                 }
+
+                // application/json is the error message
                 _ => {
                     let error = response.text().await?;
                     log::error!("failed to download data: {}", error);
-                    bail!("failed to download data")
+
+                    anyhow::bail!("failed to download data")
                 }
             },
             None => {
                 let error = response.text().await?;
-                Err(anyhow::anyhow!("frror: {}", error))
+                log::error!("failed to download data: {}", error);
+
+                anyhow::bail!("failed to download data")
             }
         }
     }

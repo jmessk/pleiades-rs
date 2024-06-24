@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::borrow::Cow;
 use std::sync::Arc;
 
@@ -21,10 +21,13 @@ impl<'a> MecrmRequest for WorkerContractRequest<'a> {
     type Response = WorkerContractResponse;
 
     fn endpoint(&self, host: &url::Url) -> url::Url {
-        host.join(&format!("worker/{}/contract", self.worker_id)).unwrap()
+        host.join(&format!("worker/{}/contract", self.worker_id))
+            .unwrap()
     }
 
     async fn send(&self, client: &Arc<Client>) -> Result<WorkerContractResponse> {
+        log::debug!("contracting worker: {:?}", self);
+
         let response = client
             .client()
             .post(self.endpoint(client.host()))
@@ -48,9 +51,21 @@ impl MecrmResponse for WorkerContractResponse {
     type Response = WorkerContractResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<WorkerContractResponse> {
-        response
-            .json()
-            .await
-            .with_context(|| "failed to worker contract job")
+        let body = response.text().await?;
+
+        match serde_json::from_str::<WorkerContractResponse>(&body) {
+            Ok(response) => {
+                log::info!(
+                    "worker contracted",
+                );
+                log::debug!("worker contracted: {}", body);
+
+                Ok(response)
+            }
+            Err(e) => {
+                log::error!("failed to contract worker: {}", body);
+                anyhow::bail!("failed to contract worker: {}", e)
+            }
+        }
     }
 }
