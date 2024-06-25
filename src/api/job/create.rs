@@ -78,7 +78,8 @@ pub struct JobCreateResponse {
 
 impl MecrmResponse for JobCreateResponse {
     type Response = JobCreateResponse;
-
+    
+    // #[tracing::instrument]
     async fn from_response(response: reqwest::Response) -> Result<JobCreateResponse> {
         let body = response.text().await?;
 

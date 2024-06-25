@@ -5,14 +5,14 @@ use mecrs::Client;
 
 #[tokio::main]
 async fn main() {
-    // logger
-    std::env::set_var("RUST_LOG", "debug");
-    env_logger::init();
+    tracing_subscriber::fmt::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .init();
 
     let client_arc = Arc::new(
         Client::builder()
-            .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
-            // .host("http://192.168.168.127:8332/api/v0.5/")
+            // .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
+            .host("http://192.168.168.127:8332/api/v0.5/")
             // .host("http://172.21.39.32:8332/api/v0.5/")
             .build(),
     );
