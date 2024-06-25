@@ -6,7 +6,7 @@ use mecrs::Client;
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::fmt()
-        .with_max_level(tracing::Level::INFO)
+        .with_max_level(tracing::Level::DEBUG)
         .init();
 
     let client_arc = Arc::new(
@@ -95,6 +95,8 @@ async fn main() {
             .send(&client)
             .await
             .unwrap();
+
+        // processing
 
         let output_blob = DataUploadRequest::builder()
             .data(b"output")
