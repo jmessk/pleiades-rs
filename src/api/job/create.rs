@@ -1,7 +1,6 @@
-use anyhow::Result;
 use std::borrow::Cow;
 
-use crate::api::{MecrmRequest, MecrmResponse};
+use crate::api::{Error, ErrorResponse, Request, Response, Result};
 
 /// Request to create a job
 ///
@@ -42,7 +41,7 @@ pub struct JobCreateRequest<'a> {
     tags: Vec<Cow<'a, str>>,
 }
 
-impl<'a> MecrmRequest for JobCreateRequest<'a> {
+impl<'a> Request for JobCreateRequest<'a> {
     type Response = JobCreateResponse;
 
     fn endpoint(&self) -> String {
@@ -70,24 +69,26 @@ pub struct JobCreateResponse {
     pub job_id: String,
 }
 
-impl MecrmResponse for JobCreateResponse {
+impl Response for JobCreateResponse {
     type Response = JobCreateResponse;
 
-    // #[tracing::instrument]
     async fn from_response(response: reqwest::Response) -> Result<JobCreateResponse> {
         let body = response.text().await?;
 
         match serde_json::from_str::<JobCreateResponse>(&body) {
             Ok(response) => {
                 log::info!("job created");
-                log::debug!("job created: {}", body);
+                log::debug!("job created: {:?}", response);
 
                 Ok(response)
             }
-            Err(e) => {
-                log::error!("failed to create job: {}", body);
-                anyhow::bail!("failed to create job: {}", e)
-            }
+            Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
+                Ok(response) => {
+                    log::error!("failed to create job: {:?}", response);
+                    Err(Error::Response(response))
+                }
+                Err(e) => Err(Error::Parse(e)),
+            },
         }
     }
 }

@@ -1,8 +1,7 @@
-use anyhow::Result;
 use bytes::Bytes;
 use std::borrow::Cow;
 
-use crate::api::{MecrmRequest, MecrmResponse};
+use crate::api::{Error, ErrorResponse, Request, Response, Result};
 
 /// Request to download byte data
 ///
@@ -26,7 +25,7 @@ pub struct DataDownloadRequest<'a> {
     data_id: Cow<'a, str>,
 }
 
-impl<'a> MecrmRequest for DataDownloadRequest<'a> {
+impl<'a> Request for DataDownloadRequest<'a> {
     type Response = DataDownloadResponse;
 
     fn endpoint(&self) -> String {
@@ -54,35 +53,48 @@ pub struct DataDownloadResponse {
     pub data: Bytes,
 }
 
-impl MecrmResponse for DataDownloadResponse {
+impl Response for DataDownloadResponse {
     type Response = DataDownloadResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<DataDownloadResponse> {
-        match response.headers().get("content-type") {
-            Some(content_type) => match content_type.to_str()? {
-                // application/octet-stream is the blob data
-                "application/octet-stream" => {
-                    let data = response.bytes().await?;
+        let content_type = response.headers().get("content-type");
 
-                    log::info!("data downloaded");
-                    log::debug!("downloaded {} bytes", data.len());
+        if let None = content_type {
+            let error = response.text().await?;
+            log::error!("failed to download data: {}", error);
 
-                    Ok(DataDownloadResponse { data })
+            return Err(Error::Other(anyhow::anyhow!("failed to read content type")));
+        }
+
+        match content_type.unwrap().to_str().unwrap() {
+            // application/octet-stream is the blob data
+            "application/octet-stream" => {
+                let data = response.bytes().await?;
+
+                log::info!("data downloaded");
+                log::debug!("downloaded {} bytes", data.len());
+
+                Ok(DataDownloadResponse { data })
+            }
+
+            // application/json is the error message
+            "application/json" => match response.json::<ErrorResponse>().await {
+                Ok(response) => {
+                    log::error!("failed to download data: {}", response);
+                    Err(Error::Response(response))
                 }
-
-                // application/json is the error message
-                _ => {
-                    let error = response.text().await?;
-                    log::error!("failed to download data: {}", error);
-
-                    anyhow::bail!("failed to download data")
+                Err(e) => {
+                    log::error!("failed to download data: {}", e);
+                    Err(Error::Request(e))
                 }
             },
-            None => {
+
+            // other content types are not supported
+            _ => {
                 let error = response.text().await?;
                 log::error!("failed to download data: {}", error);
 
-                anyhow::bail!("failed to download data")
+                Err(Error::Other(anyhow::anyhow!("failed to download data")))
             }
         }
     }

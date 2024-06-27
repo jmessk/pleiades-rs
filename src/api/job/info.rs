@@ -1,7 +1,6 @@
-use anyhow::Result;
 use std::borrow::Cow;
 
-use crate::api::{MecrmRequest, MecrmResponse};
+use crate::api::{Error, ErrorResponse, Request, Response, Result};
 
 /// Request to get job info
 ///
@@ -40,7 +39,7 @@ pub struct JobInfoRequest<'a> {
     timeout: Option<u32>,
 }
 
-impl<'a> MecrmRequest for JobInfoRequest<'a> {
+impl<'a> Request for JobInfoRequest<'a> {
     type Response = JobInfoResponse;
 
     fn endpoint(&self) -> String {
@@ -130,7 +129,7 @@ pub struct JobInfoResponse {
     pub output: Option<Output>,
 }
 
-impl MecrmResponse for JobInfoResponse {
+impl Response for JobInfoResponse {
     type Response = JobInfoResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<JobInfoResponse> {
@@ -143,10 +142,13 @@ impl MecrmResponse for JobInfoResponse {
 
                 Ok(response)
             }
-            Err(e) => {
-                log::error!("failed to get job info: {}", body);
-                anyhow::bail!("failed to get job info: {}", e)
-            }
+            Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
+                Ok(response) => {
+                    log::error!("failed to fetch job info: {:?}", response);
+                    Err(Error::Response(response))
+                }
+                Err(e) => Err(Error::Parse(e)),
+            },
         }
     }
 }

@@ -1,7 +1,6 @@
-use anyhow::Result;
 use std::borrow::Cow;
 
-use crate::api::{MecrmRequest, MecrmResponse};
+use crate::api::{Error, ErrorResponse, Request, Response, Result};
 
 /// Request to register a worker
 ///
@@ -23,7 +22,7 @@ pub struct WorkerRegisterRequest<'a> {
     runtimes: Vec<Cow<'a, str>>,
 }
 
-impl<'a> MecrmRequest for WorkerRegisterRequest<'a> {
+impl<'a> Request for WorkerRegisterRequest<'a> {
     type Response = WorkerRegisterResponse;
 
     fn endpoint(&self) -> String {
@@ -59,7 +58,7 @@ pub struct WorkerRegisterResponse {
     pub runtimes: Vec<String>,
 }
 
-impl MecrmResponse for WorkerRegisterResponse {
+impl Response for WorkerRegisterResponse {
     type Response = WorkerRegisterResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<WorkerRegisterResponse> {
@@ -72,10 +71,13 @@ impl MecrmResponse for WorkerRegisterResponse {
 
                 Ok(response)
             }
-            Err(e) => {
-                log::error!("failed to register worker: {}", body);
-                anyhow::bail!("failed to register worker: {}", e)
-            }
+            Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
+                Ok(response) => {
+                    log::error!("failed to register worker: {:?}", response);
+                    Err(Error::Response(response))
+                }
+                Err(e) => Err(Error::Parse(e)),
+            },
         }
     }
 }

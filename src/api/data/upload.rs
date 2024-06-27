@@ -1,8 +1,7 @@
-use anyhow::Result;
 use reqwest::multipart;
 use std::borrow::Cow;
 
-use crate::api::{MecrmRequest, MecrmResponse};
+use crate::api::{Error, ErrorResponse, Request, Response, Result};
 
 /// Request to upload byte data
 ///
@@ -25,7 +24,7 @@ pub struct DataUploadRequest<'a> {
     data: Cow<'a, [u8]>,
 }
 
-impl<'a> MecrmRequest for DataUploadRequest<'a> {
+impl<'a> Request for DataUploadRequest<'a> {
     type Response = DataUploadResponse;
 
     fn endpoint(&self) -> String {
@@ -59,22 +58,27 @@ pub struct DataUploadResponse {
     pub checksum: String,
 }
 
-impl MecrmResponse for DataUploadResponse {
+impl Response for DataUploadResponse {
     type Response = DataUploadResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<DataUploadResponse> {
         let body = response.text().await?;
 
-        match serde_json::from_str(&body) {
+        match serde_json::from_str::<DataUploadResponse>(&body) {
             Ok(response) => {
                 log::info!("data uploaded");
-                log::debug!("data uploaded: {}", body);
+                log::debug!("data uploaded: {:?}", response);
 
                 Ok(response)
             }
-            Err(e) => {
-                log::error!("failed to parse response: {}", body);
-                anyhow::bail!("failed to parse response: {}", e)
+            Err(_) => {
+                match serde_json::from_str::<ErrorResponse>(&body) {
+                    Ok(response) => {
+                        log::error!("failed to upload data: {:?}", response);
+                        Err(Error::Response(response))
+                    }
+                    Err(e) => Err(Error::Parse(e)),
+                }
             }
         }
     }

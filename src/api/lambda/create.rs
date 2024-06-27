@@ -1,7 +1,6 @@
-use anyhow::Result;
 use std::borrow::Cow;
 
-use crate::api::{MecrmRequest, MecrmResponse};
+use crate::api::{ErrorResponse, Request, Response, Result, Error};
 
 /// Request to create a lambda
 ///
@@ -30,7 +29,7 @@ pub struct LambdaCreateRequest<'a> {
     runtime: Cow<'a, str>,
 }
 
-impl<'a> MecrmRequest for LambdaCreateRequest<'a> {
+impl<'a> Request for LambdaCreateRequest<'a> {
     type Response = LambdaCreateResponse;
 
     fn endpoint(&self) -> String {
@@ -62,7 +61,7 @@ pub struct LambdaCreateResponse {
     pub lambda_id: String,
 }
 
-impl MecrmResponse for LambdaCreateResponse {
+impl Response for LambdaCreateResponse {
     type Response = LambdaCreateResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<LambdaCreateResponse> {
@@ -75,9 +74,14 @@ impl MecrmResponse for LambdaCreateResponse {
 
                 Ok(response)
             }
-            Err(e) => {
-                log::error!("failed to create lambda: {}", body);
-                anyhow::bail!("failed to create lambda: {}", e)
+            Err(_) => {
+                match serde_json::from_str::<ErrorResponse>(&body) {
+                    Ok(response) => {
+                        log::error!("failed to create lambda: {:?}", response);
+                        Err(Error::Response(response))
+                    }
+                    Err(e) => Err(Error::Parse(e)),
+                }
             }
         }
     }

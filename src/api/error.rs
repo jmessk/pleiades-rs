@@ -1,18 +1,30 @@
-use anyhow::{Context, Result};
+use crate::api::{Error, Response, Result};
 
-use crate::api::MecrmResponse;
-
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Debug)]
 pub struct ErrorResponse {
     pub code: i32,
     pub status: String,
     pub message: String,
 }
 
-impl MecrmResponse for ErrorResponse {
+impl Response for ErrorResponse {
     type Response = ErrorResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<ErrorResponse> {
-        response.json().await.context("Failed to parse response")
+        match response.json::<ErrorResponse>().await {
+            Ok(response) => Ok(response),
+            Err(e) => Err(Error::Request(e)),
+        }
+        // Ok(response.json::<ErrorResponse>().await.unwrap())
+    }
+}
+
+impl std::fmt::Display for ErrorResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "code: {}, status: {}, message: {}",
+            self.code, self.status, self.message
+        )
     }
 }

@@ -1,7 +1,6 @@
-use anyhow::Result;
 use std::borrow::Cow;
 
-use crate::api::{MecrmRequest, MecrmResponse};
+use crate::api::{Error, ErrorResponse, Request, Response, Result};
 
 /// Request to update a job
 ///
@@ -35,7 +34,7 @@ pub struct JobUpdateRequest<'a> {
     status: Cow<'a, str>,
 }
 
-impl<'a> MecrmRequest for JobUpdateRequest<'a> {
+impl<'a> Request for JobUpdateRequest<'a> {
     type Response = JobUpdateResponse;
 
     fn endpoint(&self) -> String {
@@ -60,7 +59,7 @@ pub struct JobUpdateResponse {
     pub message: String,
 }
 
-impl MecrmResponse for JobUpdateResponse {
+impl Response for JobUpdateResponse {
     type Response = JobUpdateResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<JobUpdateResponse> {
@@ -68,15 +67,18 @@ impl MecrmResponse for JobUpdateResponse {
 
         match serde_json::from_str::<JobUpdateResponse>(&body) {
             Ok(response) => {
-                log::info!("job updated");
-                log::debug!("job updated: {}", body);
+                log::info!("job status updated");
+                log::debug!("job status updated: {}", body);
 
                 Ok(response)
             }
-            Err(e) => {
-                log::error!("failed to update job: {}", body);
-                anyhow::bail!("failed to update job: {}", e);
-            }
+            Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
+                Ok(response) => {
+                    log::error!("failed to update job status: {:?}", response);
+                    Err(Error::Response(response))
+                }
+                Err(e) => Err(Error::Parse(e)),
+            },
         }
     }
 }

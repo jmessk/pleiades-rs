@@ -1,7 +1,6 @@
-use anyhow::Result;
 use std::borrow::Cow;
 
-use crate::api::{MecrmRequest, MecrmResponse};
+use crate::api::{Error, ErrorResponse, Request, Response, Result};
 
 /// Request to contract a worker
 ///
@@ -45,7 +44,7 @@ pub struct WorkerContractRequest<'a> {
     timeout: u32,
 }
 
-impl<'a> MecrmRequest for WorkerContractRequest<'a> {
+impl<'a> Request for WorkerContractRequest<'a> {
     type Response = WorkerContractResponse;
 
     fn endpoint(&self) -> String {
@@ -77,7 +76,7 @@ pub struct WorkerContractResponse {
     pub job_id: Option<String>,
 }
 
-impl MecrmResponse for WorkerContractResponse {
+impl Response for WorkerContractResponse {
     type Response = WorkerContractResponse;
 
     async fn from_response(response: reqwest::Response) -> Result<WorkerContractResponse> {
@@ -98,10 +97,13 @@ impl MecrmResponse for WorkerContractResponse {
                     Ok(response)
                 }
             },
-            Err(e) => {
-                log::error!("failed to contract worker: {}", body);
-                anyhow::bail!("failed to contract worker: {}", e)
-            }
+            Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
+                Ok(response) => {
+                    log::error!("failed to contract job: {:?}", response);
+                    Err(Error::Response(response))
+                }
+                Err(e) => Err(Error::Parse(e)),
+            },
         }
     }
 }
