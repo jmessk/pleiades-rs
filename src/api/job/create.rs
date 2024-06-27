@@ -49,11 +49,12 @@ impl<'a> Request for JobCreateRequest<'a> {
     }
 
     async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<JobCreateResponse> {
+        let endpoint = host.join(&self.endpoint()).unwrap();
+        let request = client.post(endpoint).json(&self).build()?;
+
         log::debug!("creating job: {:?}", self);
 
-        let endpoint = host.join(&self.endpoint()).unwrap();
-        let response = client.post(endpoint).json(&self).send().await?;
-
+        let response = client.execute(request).await?;
         JobCreateResponse::from_response(response).await
     }
 }

@@ -34,11 +34,12 @@ impl<'a> Request for WorkerRegisterRequest<'a> {
         client: &reqwest::Client,
         host: &url::Url,
     ) -> Result<WorkerRegisterResponse> {
+        let endpoint = host.join(&self.endpoint()).unwrap();
+        let request = client.post(endpoint).json(&self).build()?;
+
         log::debug!("registering worker: {:?}", self);
 
-        let endpoint = host.join(&self.endpoint()).unwrap();
-        let response = client.post(endpoint).json(&self).send().await?;
-
+        let response = client.execute(request).await?;
         WorkerRegisterResponse::from_response(response).await
     }
 }

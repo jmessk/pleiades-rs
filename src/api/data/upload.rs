@@ -32,16 +32,17 @@ impl<'a> Request for DataUploadRequest<'a> {
     }
 
     async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<DataUploadResponse> {
-        log::debug!("uploading data: {} bytes", self.data.len());
-
         let multipart = {
             let part = multipart::Part::bytes(self.data.to_vec()).file_name("data");
             multipart::Form::new().part("file", part)
         };
 
         let endpoint = host.join(&self.endpoint()).unwrap();
-        let response = client.post(endpoint).multipart(multipart).send().await?;
+        let request = client.post(endpoint).multipart(multipart).build()?;
 
+        log::debug!("uploading data: {} bytes", self.data.len());
+
+        let response = client.execute(request).await?;
         DataUploadResponse::from_response(response).await
     }
 }
@@ -71,15 +72,13 @@ impl Response for DataUploadResponse {
 
                 Ok(response)
             }
-            Err(_) => {
-                match serde_json::from_str::<ErrorResponse>(&body) {
-                    Ok(response) => {
-                        log::error!("failed to upload data: {:?}", response);
-                        Err(Error::Response(response))
-                    }
-                    Err(e) => Err(Error::Parse(e)),
+            Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
+                Ok(response) => {
+                    log::error!("failed to upload data: {:?}", response);
+                    Err(Error::Response(response))
                 }
-            }
+                Err(e) => Err(Error::Parse(e)),
+            },
         }
     }
 }

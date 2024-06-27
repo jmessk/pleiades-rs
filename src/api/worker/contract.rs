@@ -56,11 +56,12 @@ impl<'a> Request for WorkerContractRequest<'a> {
         client: &reqwest::Client,
         host: &url::Url,
     ) -> Result<WorkerContractResponse> {
+        let endpoint = host.join(&self.endpoint()).unwrap();
+        let request = client.post(endpoint).json(&self).build()?;
+
         log::debug!("contracting worker: {:?}", self);
 
-        let endpoint = host.join(&self.endpoint()).unwrap();
-        let response = client.post(endpoint).json(&self).send().await?;
-
+        let response = client.execute(request).await?;
         WorkerContractResponse::from_response(response).await
     }
 }

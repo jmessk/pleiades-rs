@@ -47,21 +47,19 @@ impl<'a> Request for JobInfoRequest<'a> {
     }
 
     async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<JobInfoResponse> {
-        log::debug!("getting job info: {:?}", self);
-
         let endpoint = host.join(&self.endpoint()).unwrap();
-        let response = match &self.except {
-            Some(except) => {
-                client
-                    .get(endpoint)
-                    .query(&[("except", except)])
-                    .query(&[("timeout", self.timeout)])
-                    .send()
-                    .await?
-            }
-            None => client.get(endpoint).send().await?,
+        let request = match &self.except {
+            Some(except) => client
+                .get(endpoint)
+                .query(&[("except", except)])
+                .query(&[("timeout", self.timeout)])
+                .build()?,
+            None => client.get(endpoint).build()?,
         };
 
+        log::debug!("getting job info: {:?}", self);
+
+        let response = client.execute(request).await?;
         JobInfoResponse::from_response(response).await
     }
 }

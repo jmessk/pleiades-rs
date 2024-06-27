@@ -37,11 +37,12 @@ impl<'a> Request for DataDownloadRequest<'a> {
         client: &reqwest::Client,
         host: &url::Url,
     ) -> Result<DataDownloadResponse> {
-        log::debug!("downloading data: {}", self.data_id);
-
         let endpoint = host.join(&self.endpoint()).unwrap();
-        let response = client.get(endpoint).send().await?;
+        let request = client.get(endpoint).build()?;
 
+        log::debug!("downloading data: {:?}", self.data_id);
+
+        let response = client.execute(request).await?;
         DataDownloadResponse::from_response(response).await
     }
 }

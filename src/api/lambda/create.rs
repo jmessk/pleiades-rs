@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::api::{ErrorResponse, Request, Response, Result, Error};
+use crate::api::{Error, ErrorResponse, Request, Response, Result};
 
 /// Request to create a lambda
 ///
@@ -41,11 +41,12 @@ impl<'a> Request for LambdaCreateRequest<'a> {
         client: &reqwest::Client,
         host: &url::Url,
     ) -> Result<LambdaCreateResponse> {
+        let endpoint = host.join(&self.endpoint()).unwrap();
+        let request = client.post(endpoint).json(&self).build()?;
+
         log::debug!("creating lambda: {:?}", self);
 
-        let endpoint = host.join(&self.endpoint()).unwrap();
-        let response = client.post(endpoint).json(&self).send().await?;
-
+        let response = client.execute(request).await?;
         LambdaCreateResponse::from_response(response).await
     }
 }
@@ -74,15 +75,13 @@ impl Response for LambdaCreateResponse {
 
                 Ok(response)
             }
-            Err(_) => {
-                match serde_json::from_str::<ErrorResponse>(&body) {
-                    Ok(response) => {
-                        log::error!("failed to create lambda: {:?}", response);
-                        Err(Error::Response(response))
-                    }
-                    Err(e) => Err(Error::Parse(e)),
+            Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
+                Ok(response) => {
+                    log::error!("failed to create lambda: {:?}", response);
+                    Err(Error::Response(response))
                 }
-            }
+                Err(e) => Err(Error::Parse(e)),
+            },
         }
     }
 }
