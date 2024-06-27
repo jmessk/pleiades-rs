@@ -47,7 +47,7 @@ async fn main() {
 
         let job_info = JobInfoRequest::builder()
             .job_id(&job.job_id)
-            .except("Finished")
+            .except("Finished") 
             .timeout(10)
             .build()
             .send(client.client(), client.host())
