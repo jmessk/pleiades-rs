@@ -1,24 +1,22 @@
 use anyhow::Result;
 use std::borrow::Cow;
-use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Client;
 
 /// Request to get job info
-/// 
+///
 /// # Example
-/// 
+///
 /// ```rust
 /// use mecrs::api::job::info::JobInfoRequest;
-/// 
+///
 /// let request = JobInfoRequest::builder()
 ///    .job_id("1")
 ///    .build();
-/// 
+///
 /// let response = request.send(&client).await?;
 /// let job_id = response.job_id;
-/// 
+///
 /// // `except` and `timeout` can be used together
 /// // requester can poll until job status changes
 /// let request_with_except = JobInfoRequest::builder()
@@ -45,30 +43,24 @@ pub struct JobInfoRequest<'a> {
 impl<'a> MecrmRequest for JobInfoRequest<'a> {
     type Response = JobInfoResponse;
 
-    fn endpoint(&self, host: &url::Url) -> url::Url {
-        host.join(&format!("job/{}", self.job_id)).unwrap()
+    fn endpoint(&self) -> String {
+        format!("job/{}", self.job_id)
     }
 
-    async fn send(&self, client: &Arc<Client>) -> Result<JobInfoResponse> {
+    async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<JobInfoResponse> {
         log::debug!("getting job info: {:?}", self);
 
+        let endpoint = host.join(&self.endpoint()).unwrap();
         let response = match &self.except {
             Some(except) => {
                 client
-                    .client()
-                    .get(self.endpoint(client.host()))
+                    .get(endpoint)
                     .query(&[("except", except)])
                     .query(&[("timeout", self.timeout)])
                     .send()
                     .await?
             }
-            None => {
-                client
-                    .client()
-                    .get(self.endpoint(client.host()))
-                    .send()
-                    .await?
-            }
+            None => client.get(endpoint).send().await?,
         };
 
         JobInfoResponse::from_response(response).await
@@ -105,18 +97,18 @@ pub struct Output {
 }
 
 /// Response from getting job info
-/// 
+///
 /// # Example
-/// 
+///
 /// ```rust
 /// use mecrs::api::job::info::JobInfoRequest;
-/// 
+///
 /// let request = JobInfoRequest::builder()
 ///     .job_id("1")
 ///     .build();
-/// 
+///
 /// let response = request.send(&client).await?;
-/// 
+///
 /// let job_id = response.job_id;
 /// let lambda_id = response.lambda.lambda_id;
 /// let input_id = response.input.data_id;

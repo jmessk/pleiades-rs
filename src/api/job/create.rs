@@ -1,9 +1,7 @@
 use anyhow::Result;
 use std::borrow::Cow;
-use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Client;
 
 /// Request to create a job
 ///
@@ -16,9 +14,9 @@ use crate::Client;
 ///    .data_id("1")
 ///    .lambda_id("2")
 ///    .build();
-/// 
+///
 /// let response = request.send(&client).await?;
-/// 
+///
 /// let request_with_tags = JobCreateRequest::builder()
 ///     .data_id("1")
 ///     .lambda_id("2")
@@ -47,19 +45,15 @@ pub struct JobCreateRequest<'a> {
 impl<'a> MecrmRequest for JobCreateRequest<'a> {
     type Response = JobCreateResponse;
 
-    fn endpoint(&self, host: &url::Url) -> url::Url {
-        host.join("job").unwrap()
+    fn endpoint(&self) -> String {
+        "job".to_string()
     }
 
-    async fn send(&self, client: &Arc<Client>) -> Result<JobCreateResponse> {
+    async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<JobCreateResponse> {
         log::debug!("creating job: {:?}", self);
 
-        let response = client
-            .client()
-            .post(self.endpoint(client.host()))
-            .json(&self)
-            .send()
-            .await?;
+        let endpoint = host.join(&self.endpoint()).unwrap();
+        let response = client.post(endpoint).json(&self).send().await?;
 
         JobCreateResponse::from_response(response).await
     }
@@ -78,7 +72,7 @@ pub struct JobCreateResponse {
 
 impl MecrmResponse for JobCreateResponse {
     type Response = JobCreateResponse;
-    
+
     // #[tracing::instrument]
     async fn from_response(response: reqwest::Response) -> Result<JobCreateResponse> {
         let body = response.text().await?;

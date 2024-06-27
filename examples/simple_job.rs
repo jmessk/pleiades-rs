@@ -20,12 +20,12 @@ async fn main() {
     let client = client_arc.clone();
 
     let requester_task = tokio::spawn(async move {
-        let start = std::time::Instant::now();
+        // let start = std::time::Instant::now();
 
         let blob = DataUploadRequest::builder()
             .data(b"input")
             .build()
-            .send(&client)
+            .send(client.client(), client.host())
             .await
             .unwrap();
 
@@ -33,7 +33,7 @@ async fn main() {
             .data_id(&blob.data_id)
             .runtime("mecrm-rs")
             .build()
-            .send(&client)
+            .send(client.client(), client.host())
             .await
             .unwrap();
 
@@ -41,7 +41,7 @@ async fn main() {
             .data_id(&blob.data_id)
             .lambda_id(lambda.lambda_id)
             .build()
-            .send(&client)
+            .send(client.client(), client.host())
             .await
             .unwrap();
 
@@ -50,18 +50,18 @@ async fn main() {
             .except("Finished")
             .timeout(10)
             .build()
-            .send(&client)
+            .send(client.client(), client.host())
             .await
             .unwrap();
 
         let _output_blob = DataDownloadRequest::builder()
             .data_id(&job_info.output.unwrap().data_id)
             .build()
-            .send(&client)
+            .send(client.client(), client.host())
             .await
             .unwrap();
 
-        println!("Elapsed: {:?}", start.elapsed());
+        // println!("Elapsed: {:?}", start.elapsed());
     });
 
     let client = client_arc.clone();
@@ -70,7 +70,7 @@ async fn main() {
         let worker = WorkerRegisterRequest::builder()
             .runtimes(vec!["mecrm-rs".into()])
             .build()
-            .send(&client)
+            .send(client.client(), client.host())
             .await
             .unwrap();
 
@@ -78,21 +78,21 @@ async fn main() {
             .worker_id(&worker.worker_id)
             .timeout(10)
             .build()
-            .send(&client)
+            .send(client.client(), client.host())
             .await
             .unwrap();
 
         let job_info = JobInfoRequest::builder()
             .job_id(&job.job_id.unwrap())
             .build()
-            .send(&client)
+            .send(client.client(), client.host())
             .await
             .unwrap();
 
         let _input_blob = DataDownloadRequest::builder()
             .data_id(job_info.input.data_id)
             .build()
-            .send(&client)
+            .send(client.client(), client.host())
             .await
             .unwrap();
 
@@ -101,7 +101,7 @@ async fn main() {
         let output_blob = DataUploadRequest::builder()
             .data(b"output")
             .build()
-            .send(&client)
+            .send(client.client(), client.host())
             .await
             .unwrap();
 
@@ -110,7 +110,7 @@ async fn main() {
             .data_id(output_blob.data_id)
             .status("finished")
             .build()
-            .send(&client)
+            .send(client.client(), client.host())
             .await
             .unwrap();
     });

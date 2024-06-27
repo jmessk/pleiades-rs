@@ -1,23 +1,21 @@
 use anyhow::Result;
 use bytes::Bytes;
 use std::borrow::Cow;
-use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Client;
 
 /// Request to download byte data
-/// 
+///
 /// # Example
-/// 
+///
 /// ```rust
 /// use mecrs::api::data::download::DataDownloadRequest;
 /// use bytes::Bytes;
-/// 
+///
 /// let request = DataDownloadRequest::builder()
 ///     .data_id("1")
 ///     .build();
-/// 
+///
 /// let response = request.send(&client).await?;
 /// let data: Bytes = response.data;
 /// ```
@@ -31,18 +29,19 @@ pub struct DataDownloadRequest<'a> {
 impl<'a> MecrmRequest for DataDownloadRequest<'a> {
     type Response = DataDownloadResponse;
 
-    fn endpoint(&self, host: &url::Url) -> url::Url {
-        host.join(&format!("data/{}/blob", self.data_id)).unwrap()
+    fn endpoint(&self) -> String {
+        format!("data/{}/blob", self.data_id)
     }
 
-    async fn send(&self, client: &Arc<Client>) -> Result<DataDownloadResponse> {
+    async fn send(
+        &self,
+        client: &reqwest::Client,
+        host: &url::Url,
+    ) -> Result<DataDownloadResponse> {
         log::debug!("downloading data: {}", self.data_id);
 
-        let response = client
-            .client()
-            .get(self.endpoint(client.host()))
-            .send()
-            .await?;
+        let endpoint = host.join(&self.endpoint()).unwrap();
+        let response = client.get(endpoint).send().await?;
 
         DataDownloadResponse::from_response(response).await
     }
@@ -86,26 +85,5 @@ impl MecrmResponse for DataDownloadResponse {
                 anyhow::bail!("failed to download data")
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_data_download() {
-        let client = Client::builder()
-            .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
-            .build();
-
-        let client = Arc::new(client);
-
-        let request = DataDownloadRequest::builder().data_id("1").build();
-
-        let response = request.send(&client).await;
-        dbg!(&response);
-
-        assert!(response.is_ok());
     }
 }

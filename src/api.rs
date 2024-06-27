@@ -10,19 +10,17 @@ pub use job::{create::JobCreateRequest, info::JobInfoRequest, update::JobUpdateR
 pub use lambda::create::LambdaCreateRequest;
 pub use worker::{contract::WorkerContractRequest, register::WorkerRegisterRequest};
 
-use crate::Client;
-
 use anyhow::Result;
-use std::sync::Arc;
 
 pub trait MecrmRequest {
     type Response: MecrmResponse;
 
-    fn endpoint(&self, host: &url::Url) -> url::Url;
+    fn endpoint(&self) -> String;
 
     fn send(
         &self,
-        client: &Arc<Client>,
+        client: &reqwest::Client,
+        host: &url::Url,
     ) -> impl std::future::Future<Output = Result<Self::Response>> + Send;
 }
 

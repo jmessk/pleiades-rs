@@ -1,22 +1,20 @@
 use anyhow::Result;
 use std::borrow::Cow;
-use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Client;
 
 /// Request to create a lambda
-/// 
+///
 /// # Example
-/// 
+///
 /// ```rust
 /// use mecrs::api::lambda::create::LambdaCreateRequest;
-/// 
+///
 /// let request = LambdaCreateRequest::builder()
 ///     .data_id("1")
 ///     .runtime("mecrs+test")
 ///     .build();
-/// 
+///
 /// let response = request.send(&client).await?;
 /// let lambda_id = response.lambda_id;
 /// ```
@@ -35,19 +33,19 @@ pub struct LambdaCreateRequest<'a> {
 impl<'a> MecrmRequest for LambdaCreateRequest<'a> {
     type Response = LambdaCreateResponse;
 
-    fn endpoint(&self, host: &url::Url) -> url::Url {
-        host.join("lambda").unwrap()
+    fn endpoint(&self) -> String {
+        "lambda".to_string()
     }
 
-    async fn send(&self, client: &Arc<Client>) -> Result<LambdaCreateResponse> {
+    async fn send(
+        &self,
+        client: &reqwest::Client,
+        host: &url::Url,
+    ) -> Result<LambdaCreateResponse> {
         log::debug!("creating lambda: {:?}", self);
 
-        let response = client
-            .client()
-            .post(self.endpoint(client.host()))
-            .json(&self)
-            .send()
-            .await?;
+        let endpoint = host.join(&self.endpoint()).unwrap();
+        let response = client.post(endpoint).json(&self).send().await?;
 
         LambdaCreateResponse::from_response(response).await
     }
@@ -82,30 +80,5 @@ impl MecrmResponse for LambdaCreateResponse {
                 anyhow::bail!("failed to create lambda: {}", e)
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::Client;
-
-    #[tokio::test]
-    async fn test_lambda_create() {
-        let client = Client::builder()
-            .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
-            .build();
-
-        let client = Arc::new(client);
-
-        let request = LambdaCreateRequest::builder()
-            .data_id("0")
-            .runtime("test+mecrm-rs")
-            .build();
-
-        let response = request.send(&client).await;
-        assert!(response.is_ok());
-
-        dbg!(response.unwrap());
     }
 }

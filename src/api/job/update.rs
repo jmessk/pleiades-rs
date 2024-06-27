@@ -1,23 +1,21 @@
 use anyhow::Result;
 use std::borrow::Cow;
-use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Client;
 
 /// Request to update a job
-/// 
+///
 /// # Example
-/// 
+///
 /// ```rust
 /// use mecrs::api::job::update::JobUpdateRequest;
-/// 
+///
 /// let request = JobUpdateRequest::builder()
 ///    .job_id("1")
 ///    .data_id("2")
 ///    .status("Finished")
 ///    .build();
-/// 
+///
 /// let response = request.send(&client).await?;
 /// ```
 #[derive(serde::Serialize, Debug, typed_builder::TypedBuilder)]
@@ -40,19 +38,15 @@ pub struct JobUpdateRequest<'a> {
 impl<'a> MecrmRequest for JobUpdateRequest<'a> {
     type Response = JobUpdateResponse;
 
-    fn endpoint(&self, host: &url::Url) -> url::Url {
-        host.join(&format!("job/{}", self.job_id)).unwrap()
+    fn endpoint(&self) -> String {
+        format!("job/{}", self.job_id)
     }
 
-    async fn send(&self, client: &Arc<Client>) -> Result<JobUpdateResponse> {
+    async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<JobUpdateResponse> {
         log::debug!("updating job: {:?}", self);
 
-        let response = client
-            .client()
-            .post(self.endpoint(client.host()))
-            .json(&self)
-            .send()
-            .await?;
+        let endpoint = host.join(&self.endpoint()).unwrap();
+        let response = client.post(endpoint).json(&self).send().await?;
 
         JobUpdateResponse::from_response(response).await
     }

@@ -51,27 +51,27 @@ async fn requester(client: Arc<Client>) -> Result<()> {
     let lambda_blob = DataUploadRequest::builder()
         .data(b"")
         .build()
-        .send(&client)
+        .send(client.client(), client.host())
         .await?;
 
     let lambda = LambdaCreateRequest::builder()
         .data_id(lambda_blob.data_id)
         .runtime("mecrs")
         .build()
-        .send(&client)
+        .send(client.client(), client.host())
         .await?;
 
     let input_blob = DataUploadRequest::builder()
         .data(b"")
         .build()
-        .send(&client)
+        .send(client.client(), client.host())
         .await?;
 
     let job_create = JobCreateRequest::builder()
         .lambda_id(lambda.lambda_id)
         .data_id(input_blob.data_id)
         .build()
-        .send(&client)
+        .send(client.client(), client.host())
         .await?;
 
     let job_info = JobInfoRequest::builder()
@@ -79,13 +79,13 @@ async fn requester(client: Arc<Client>) -> Result<()> {
         .except("Finished")
         .timeout(10)
         .build()
-        .send(&client)
+        .send(client.client(), client.host())
         .await?;
 
     let _ = DataDownloadRequest::builder()
         .data_id(job_info.output.unwrap().data_id)
         .build()
-        .send(&client)
+        .send(client.client(), client.host())
         .await?;
 
     Ok(())

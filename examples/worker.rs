@@ -17,7 +17,7 @@ async fn main() -> anyhow::Result<()> {
     let worker_register = WorkerRegisterRequest::builder()
         .runtimes(vec!["mecrm-rs".into()])
         .build()
-        .send(&client)
+        .send(client.client(), client.host())
         .await?;
 
     // to exit
@@ -29,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
             .worker_id(&worker_register.worker_id)
             .timeout(5)
             .build()
-            .send(&client)
+            .send(client.client(), client.host())
             .await?;
 
         if contracted.job_id.is_none() {
@@ -53,7 +53,7 @@ async fn worker(client: Arc<Client>, job_id: String) -> Result<()> {
     let job_info = JobInfoRequest::builder()
         .job_id(&job_id)
         .build()
-        .send(&client)
+        .send(client.client(), client.host())
         .await?;
 
     // dbg!(&job_info);
@@ -61,7 +61,7 @@ async fn worker(client: Arc<Client>, job_id: String) -> Result<()> {
     let _ = DataDownloadRequest::builder()
         .data_id(job_info.input.data_id)
         .build()
-        .send(&client)
+        .send(client.client(), client.host())
         .await?;
 
     // dbg!(&input_blob);
@@ -69,7 +69,7 @@ async fn worker(client: Arc<Client>, job_id: String) -> Result<()> {
     let output_blob = DataUploadRequest::builder()
         .data(b"")
         .build()
-        .send(&client)
+        .send(client.client(), client.host())
         .await?;
 
     // dbg!(&output_blob);
@@ -79,7 +79,7 @@ async fn worker(client: Arc<Client>, job_id: String) -> Result<()> {
         .data_id(output_blob.data_id)
         .status("finished")
         .build()
-        .send(&client)
+        .send(client.client(), client.host())
         .await?;
 
     println!("Job {} finished", job_id);

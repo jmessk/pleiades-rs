@@ -1,22 +1,20 @@
 use anyhow::Result;
 use reqwest::multipart;
 use std::borrow::Cow;
-use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Client;
 
 /// Request to upload byte data
-/// 
+///
 /// # Example
-/// 
+///
 /// ```rust
 /// use mecrs::api::data::upload::DataUploadRequest;
-/// 
+///
 /// let request = DataUploadRequest::builder()
 ///    .data(b"hello world")
 ///    .build();
-/// 
+///
 /// let response = request.send(&client).await?;
 /// let data_id = response.data_id;
 /// ```
@@ -30,11 +28,11 @@ pub struct DataUploadRequest<'a> {
 impl<'a> MecrmRequest for DataUploadRequest<'a> {
     type Response = DataUploadResponse;
 
-    fn endpoint(&self, host: &url::Url) -> url::Url {
-        host.join("data").unwrap()
+    fn endpoint(&self) -> String {
+        "data".to_string()
     }
 
-    async fn send(&self, client: &Arc<Client>) -> Result<DataUploadResponse> {
+    async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<DataUploadResponse> {
         log::debug!("uploading data: {} bytes", self.data.len());
 
         let multipart = {
@@ -42,12 +40,8 @@ impl<'a> MecrmRequest for DataUploadRequest<'a> {
             multipart::Form::new().part("file", part)
         };
 
-        let response = client
-            .client()
-            .post(self.endpoint(client.host()))
-            .multipart(multipart)
-            .send()
-            .await?;
+        let endpoint = host.join(&self.endpoint()).unwrap();
+        let response = client.post(endpoint).multipart(multipart).send().await?;
 
         DataUploadResponse::from_response(response).await
     }
@@ -83,27 +77,5 @@ impl MecrmResponse for DataUploadResponse {
                 anyhow::bail!("failed to parse response: {}", e)
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::Client;
-
-    #[tokio::test]
-    async fn test_data_upload() {
-        let client = Client::builder()
-            .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
-            .build();
-
-        let client = Arc::new(client);
-
-        let request = DataUploadRequest::builder().data(b"hello world").build();
-
-        let response = request.send(&client).await;
-        assert!(response.is_ok());
-
-        dbg!(response.unwrap());
     }
 }

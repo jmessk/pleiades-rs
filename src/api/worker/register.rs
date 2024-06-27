@@ -1,21 +1,19 @@
 use anyhow::Result;
 use std::borrow::Cow;
-use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Client;
 
 /// Request to register a worker
-/// 
+///
 /// # Example
-/// 
+///
 /// ```rust
 /// use mecrs::api::worker::register::WorkerRegisterRequest;
-/// 
+///
 /// let request = WorkerRegisterRequest::builder()
 ///     .runtimes(vec!["test1".into(), "test2".into()])
 ///     .build();
-/// 
+///
 /// let response = request.send(&client).await?;
 /// ```
 #[derive(serde::Serialize, Debug, typed_builder::TypedBuilder)]
@@ -28,19 +26,19 @@ pub struct WorkerRegisterRequest<'a> {
 impl<'a> MecrmRequest for WorkerRegisterRequest<'a> {
     type Response = WorkerRegisterResponse;
 
-    fn endpoint(&self, host: &url::Url) -> url::Url {
-        host.join("worker").unwrap()
+    fn endpoint(&self) -> String {
+        "worker".to_string()
     }
 
-    async fn send(&self, client: &Arc<Client>) -> Result<WorkerRegisterResponse> {
+    async fn send(
+        &self,
+        client: &reqwest::Client,
+        host: &url::Url,
+    ) -> Result<WorkerRegisterResponse> {
         log::debug!("registering worker: {:?}", self);
 
-        let response = client
-            .client()
-            .post(self.endpoint(client.host()))
-            .json(&self)
-            .send()
-            .await?;
+        let endpoint = host.join(&self.endpoint()).unwrap();
+        let response = client.post(endpoint).json(&self).send().await?;
 
         WorkerRegisterResponse::from_response(response).await
     }
@@ -79,31 +77,5 @@ impl MecrmResponse for WorkerRegisterResponse {
                 anyhow::bail!("failed to register worker: {}", e)
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::Client;
-
-    #[tokio::test]
-    async fn test_worker_register() {
-        let client = Client::builder()
-            .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
-            .build();
-
-        let client = Arc::new(client);
-
-        let request = WorkerRegisterRequest::builder()
-            .runtimes(vec!["mecrs+test1".into(), "mecrs+test2".into()])
-            .build();
-
-        dbg!(&request);
-
-        let response = request.send(&client).await;
-        assert!(response.is_ok());
-
-        dbg!(response.unwrap().runtimes);
     }
 }

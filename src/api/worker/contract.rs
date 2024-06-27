@@ -1,22 +1,20 @@
 use anyhow::Result;
 use std::borrow::Cow;
-use std::sync::Arc;
 
 use crate::api::{MecrmRequest, MecrmResponse};
-use crate::Client;
 
 /// Request to contract a worker
-/// 
+///
 /// # Example
-/// 
+///
 /// ```rust
 /// use mecrs::api::worker::contract::WorkerContractRequest;
-/// 
+///
 /// let request = WorkerContractRequest::builder()
 ///     .worker_id("1")
 ///     .timeout(10)
 ///     .build();
-/// 
+///
 /// let response = request.send(&client).await?;
 /// let job_id = match response.job_id {
 ///     Some(job_id) => job_id,
@@ -24,7 +22,7 @@ use crate::Client;
 ///        println!("no job contracted");
 ///        return;
 ///    }
-/// 
+///
 /// // worker can be contracted with tags
 /// let request_with_tags = WorkerContractRequest::builder()
 ///     .worker_id("1")
@@ -50,20 +48,19 @@ pub struct WorkerContractRequest<'a> {
 impl<'a> MecrmRequest for WorkerContractRequest<'a> {
     type Response = WorkerContractResponse;
 
-    fn endpoint(&self, host: &url::Url) -> url::Url {
-        host.join(&format!("worker/{}/contract", self.worker_id))
-            .unwrap()
+    fn endpoint(&self) -> String {
+        format!("worker/{}/contract", self.worker_id)
     }
 
-    async fn send(&self, client: &Arc<Client>) -> Result<WorkerContractResponse> {
+    async fn send(
+        &self,
+        client: &reqwest::Client,
+        host: &url::Url,
+    ) -> Result<WorkerContractResponse> {
         log::debug!("contracting worker: {:?}", self);
 
-        let response = client
-            .client()
-            .post(self.endpoint(client.host()))
-            .json(&self)
-            .send()
-            .await?;
+        let endpoint = host.join(&self.endpoint()).unwrap();
+        let response = client.post(endpoint).json(&self).send().await?;
 
         WorkerContractResponse::from_response(response).await
     }
