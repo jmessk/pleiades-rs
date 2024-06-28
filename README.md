@@ -1,3 +1,3 @@
-# mecrm-rs
+# MEC-rs
 
 MEC-RM client library for Rust.
