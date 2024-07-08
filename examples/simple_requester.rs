@@ -7,11 +7,14 @@ use mecrs::Client;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+
     // create arc client
     let client = Arc::new(
         Client::builder()
-            .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
+            // .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
             // .host("http://192.168.168.127:8332/api/v0.5/")
+            .host("http://172.21.39.32:8332/api/v0.5/")
             .build(),
     );
 
@@ -26,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
             std::process::exit(1);
         }
         if args.len() == 1 {
-            10
+            1
         } else {
             args[1].parse::<usize>().unwrap()
         }
@@ -46,47 +49,41 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn requester(client: Arc<Client>) -> Result<()> {
-    // let start_job = Instant::now();
+    // lambda blob
+    let request = DataUploadRequest::builder().data(b"").build();
+    let lambda_blob = client.request(request).await?;
 
-    let lambda_blob = DataUploadRequest::builder()
-        .data(b"")
-        .build()
-        .send(client.client(), client.host())
-        .await?;
-
-    let lambda = LambdaCreateRequest::builder()
+    // lambda
+    let request = LambdaCreateRequest::builder()
         .data_id(lambda_blob.data_id)
-        .runtime("mecrs")
-        .build()
-        .send(client.client(), client.host())
-        .await?;
+        .runtime("test+mecrs")
+        .build();
+    let lambda = client.request(request).await?;
 
-    let input_blob = DataUploadRequest::builder()
-        .data(b"")
-        .build()
-        .send(client.client(), client.host())
-        .await?;
+    // input blob
+    let request = DataUploadRequest::builder().data(b"").build();
+    let input_blob = client.request(request).await?;
 
-    let job_create = JobCreateRequest::builder()
+    // create job
+    let request = JobCreateRequest::builder()
         .lambda_id(lambda.lambda_id)
         .data_id(input_blob.data_id)
-        .build()
-        .send(client.client(), client.host())
-        .await?;
+        .build();
+    let job_create = client.request(request).await?;
 
-    let job_info = JobInfoRequest::builder()
+    // wait for finish
+    let request = JobInfoRequest::builder()
         .job_id(job_create.job_id)
         .except("Finished")
         .timeout(10)
-        .build()
-        .send(client.client(), client.host())
-        .await?;
+        .build();
+    let job_info = client.request(request).await?;
 
-    let _ = DataDownloadRequest::builder()
+    // download output
+    let request = DataDownloadRequest::builder()
         .data_id(job_info.output.unwrap().data_id)
-        .build()
-        .send(client.client(), client.host())
-        .await?;
+        .build();
+    let _ = client.request(request).await?;
 
     Ok(())
 }

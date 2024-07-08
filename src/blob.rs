@@ -1,60 +1,30 @@
-use anyhow::{bail, Context as _, Result};
+use crate::id::Id;
 
-use super::{Client, MecrmObject, ObjectBuilder};
+use bytes::Bytes;
 
-pub struct Blob {
-    id: String,
-    data: Option<Vec<u8>>,
+#[derive(Debug, typed_builder::TypedBuilder)]
+pub struct LocalBlob {
+    data: Bytes,
 }
 
-impl MecrmObject for Blob {}
+impl LocalBlob {
+    pub fn data(&self) -> Bytes {
+        self.data.clone()
+    }
+}
 
-impl Blob {
-    pub fn id(&self) -> &str {
+#[derive(Debug)]
+pub struct GlobalBlob {
+    id: Id,
+    data: Option<Bytes>,
+}
+
+impl GlobalBlob {
+    pub fn id(&self) -> &Id {
         &self.id
     }
 
-    pub async fn data(&self) -> Result<&Vec<u8>> {
-        self.data.as_ref().context("Blob data is not set")
-    }
-}
-
-pub struct BlobBuilder {
-    pub client: Client,
-    pub data: Option<Vec<u8>>,
-}
-
-impl ObjectBuilder for BlobBuilder {
-    type Output = Blob;
-
-    fn new(client: Client) -> BlobBuilder {
-        BlobBuilder { client, data: None }
-    }
-
-    // fn id(self, id: impl Into<String>) -> Blob {
-    //     Blob {
-    //         id: id.into(),
-    //         data: None,
-    //     }
-    // }
-}
-
-impl BlobBuilder {
-    pub fn data(mut self, data: impl Into<Vec<u8>>) -> BlobBuilder {
-        self.data = Some(data.into());
-        self
-    }
-
-    pub async fn post(self) -> Result<Blob> {
-        if self.data.is_none() {
-            bail!("Blob data is not set");
-        }
-
-        let id = "1234567890".to_string();
-
-        Ok(Blob {
-            id,
-            data: self.data,
-        })
+    pub fn data(&self) -> Option<Bytes> {
+        self.data.clone()
     }
 }

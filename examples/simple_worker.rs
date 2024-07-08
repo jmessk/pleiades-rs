@@ -1,21 +1,23 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use mecrs::api::*;
-use mecrs::Client;
+use mecrs::{api::*, Client};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+
     // create arc client
     let client = Arc::new(
         Client::builder()
-            .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
+            // .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
             // .host("http://192.168.168.127:8332/api/v0.5/")
+            .host("http://172.21.39.32:8332/api/v0.5/")
             .build(),
     );
 
     let worker_register = WorkerRegisterRequest::builder()
-        .runtimes(vec!["mecrm-rs".into()])
+        .runtimes(vec!["test+mecrs".into()])
         .build()
         .send(client.client(), client.host())
         .await?;
@@ -23,7 +25,7 @@ async fn main() -> anyhow::Result<()> {
     // to exit
     let mut count = 0;
 
-    while count < 2 {
+    while count < 1 {
         println!("contracting...");
         let contracted = WorkerContractRequest::builder()
             .worker_id(&worker_register.worker_id)
@@ -50,37 +52,27 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn worker(client: Arc<Client>, job_id: String) -> Result<()> {
-    let job_info = JobInfoRequest::builder()
-        .job_id(&job_id)
-        .build()
-        .send(client.client(), client.host())
-        .await?;
+    // job info
+    let request = JobInfoRequest::builder().job_id(&job_id).build();
+    let job_info = client.request(request).await?;
 
-    // dbg!(&job_info);
-
-    let _ = DataDownloadRequest::builder()
+    // download input
+    let request = DataDownloadRequest::builder()
         .data_id(job_info.input.data_id)
-        .build()
-        .send(client.client(), client.host())
-        .await?;
+        .build();
+    let _ = client.request(request).await?;
 
-    // dbg!(&input_blob);
+    // output
+    let request = DataUploadRequest::builder().data(b"").build();
+    let output_blob = client.request(request).await?;
 
-    let output_blob = DataUploadRequest::builder()
-        .data(b"")
-        .build()
-        .send(client.client(), client.host())
-        .await?;
-
-    // dbg!(&output_blob);
-
-    let _ = JobUpdateRequest::builder()
+    // update job
+    let request = JobUpdateRequest::builder()
         .job_id(job_info.job_id)
         .data_id(output_blob.data_id)
         .status("finished")
-        .build()
-        .send(client.client(), client.host())
-        .await?;
+        .build();
+    let _ = client.request(request).await?;
 
     println!("Job {} finished", job_id);
 
