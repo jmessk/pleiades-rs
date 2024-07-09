@@ -13,8 +13,8 @@ async fn main() -> anyhow::Result<()> {
     let client = Arc::new(
         Client::builder()
             // .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
-            // .host("http://192.168.168.127:8332/api/v0.5/")
-            .host("http://172.21.39.32:8332/api/v0.5/")
+            .host("http://192.168.168.127:8332/api/v0.5/")
+            // .host("http://172.21.39.32:8332/api/v0.5/")
             .build(),
     );
 
@@ -50,40 +50,54 @@ async fn main() -> anyhow::Result<()> {
 
 async fn requester(client: Arc<Client>) -> Result<()> {
     // lambda blob
-    let request = DataUploadRequest::builder().data(b"").build();
-    let lambda_blob = client.request(request).await?;
+    let lambda_blob = client
+        .request(DataUploadRequest::builder().data(b"").build())
+        .await?;
 
     // lambda
-    let request = LambdaCreateRequest::builder()
-        .data_id(lambda_blob.data_id)
-        .runtime("test+mecrs")
-        .build();
-    let lambda = client.request(request).await?;
+    let lambda = client
+        .request(
+            LambdaCreateRequest::builder()
+                .data_id(lambda_blob.data_id)
+                .runtime("test+mecrs")
+                .build(),
+        )
+        .await?;
 
     // input blob
-    let request = DataUploadRequest::builder().data(b"").build();
-    let input_blob = client.request(request).await?;
+    let input_blob = client
+        .request(DataUploadRequest::builder().data(b"").build())
+        .await?;
 
     // create job
-    let request = JobCreateRequest::builder()
-        .lambda_id(lambda.lambda_id)
-        .data_id(input_blob.data_id)
-        .build();
-    let job_create = client.request(request).await?;
+    let job_create = client
+        .request(
+            JobCreateRequest::builder()
+                .lambda_id(lambda.lambda_id)
+                .data_id(input_blob.data_id)
+                .build(),
+        )
+        .await?;
 
     // wait for finish
-    let request = JobInfoRequest::builder()
-        .job_id(job_create.job_id)
-        .except("Finished")
-        .timeout(10)
-        .build();
-    let job_info = client.request(request).await?;
+    let job_info = client
+        .request(
+            JobInfoRequest::builder()
+                .job_id(job_create.job_id)
+                .except("Finished")
+                .timeout(10)
+                .build(),
+        )
+        .await?;
 
     // download output
-    let request = DataDownloadRequest::builder()
-        .data_id(job_info.output.unwrap().data_id)
-        .build();
-    let _ = client.request(request).await?;
+    let _ = client
+        .request(
+            DataDownloadRequest::builder()
+                .data_id(job_info.output.unwrap().data_id)
+                .build(),
+        )
+        .await?;
 
     Ok(())
 }

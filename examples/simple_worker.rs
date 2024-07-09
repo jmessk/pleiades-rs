@@ -11,15 +11,17 @@ async fn main() -> anyhow::Result<()> {
     let client = Arc::new(
         Client::builder()
             // .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
-            // .host("http://192.168.168.127:8332/api/v0.5/")
-            .host("http://172.21.39.32:8332/api/v0.5/")
+            .host("http://192.168.168.127:8332/api/v0.5/")
+            // .host("http://172.21.39.32:8332/api/v0.5/")
             .build(),
     );
 
-    let worker_register = WorkerRegisterRequest::builder()
-        .runtimes(vec!["test+mecrs".into()])
-        .build()
-        .send(client.client(), client.host())
+    let worker_register = client
+        .request(
+            WorkerRegisterRequest::builder()
+                .runtimes(vec!["test+mecrs".into()])
+                .build(),
+        )
         .await?;
 
     // to exit
@@ -27,11 +29,13 @@ async fn main() -> anyhow::Result<()> {
 
     while count < 1 {
         println!("contracting...");
-        let contracted = WorkerContractRequest::builder()
-            .worker_id(&worker_register.worker_id)
-            .timeout(5)
-            .build()
-            .send(client.client(), client.host())
+        let contracted = client
+            .request(
+                WorkerContractRequest::builder()
+                    .worker_id(&worker_register.worker_id)
+                    .timeout(5)
+                    .build(),
+            )
             .await?;
 
         if contracted.job_id.is_none() {
