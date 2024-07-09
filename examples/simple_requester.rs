@@ -29,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
             std::process::exit(1);
         }
         if args.len() == 1 {
-            1
+            10
         } else {
             args[1].parse::<usize>().unwrap()
         }
@@ -38,9 +38,7 @@ async fn main() -> anyhow::Result<()> {
     let tasks = (0..job_num)
         .map(|_| {
             let client = client.clone();
-            tokio::spawn(async move {
-                requester(client).await.unwrap();
-            })
+            tokio::spawn(async move { requester(client).await.unwrap() })
         })
         .collect::<Vec<_>>();
 

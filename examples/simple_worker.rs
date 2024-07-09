@@ -47,9 +47,7 @@ async fn main() -> anyhow::Result<()> {
 
         let job_id = contracted.job_id.unwrap();
         let client = client.clone();
-        tokio::spawn(async move {
-            worker(client, job_id).await.unwrap();
-        });
+        tokio::spawn(async move { worker(client, job_id).await.unwrap() });
     }
 
     Ok(())
