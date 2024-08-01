@@ -1,5 +1,6 @@
 use anyhow::Result;
 
+#[derive(Debug)]
 pub struct Runtime {
     domain: Option<String>,
     features: Vec<String>,

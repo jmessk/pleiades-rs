@@ -2,19 +2,20 @@ use std::env;
 use std::sync::Arc;
 
 use anyhow::Result;
-use mecrs::api::*;
-use mecrs::Client;
+use pleiades::api::*;
+use pleiades::Client;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
 
     // create arc client
     let client = Arc::new(
         Client::builder()
-            // .host("https://mecrm.dolylab.cc/api/v0.5-snapshot/")
-            .host("http://192.168.168.127:8332/api/v0.5/")
+            // .host("https://pleiades.dolylab.cc/api/v0.5-snapshot/")
+            // .host("http://192.168.168.127:8332/api/v0.5/")
             // .host("http://172.21.39.32:8332/api/v0.5/")
+            .host("http://pleiades.local:8332/api/v0.5/")
             .build(),
     );
 
@@ -29,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
             std::process::exit(1);
         }
         if args.len() == 1 {
-            10
+            1
         } else {
             args[1].parse::<usize>().unwrap()
         }
