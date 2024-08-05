@@ -20,15 +20,15 @@ impl LocalBlob {
         self.data.clone()
     }
 
-    pub async fn upload(self, client: &Client) -> GlobalBlob {
-        let request = DataUploadRequest::builder().data(self.data).build();
-        let response = client.request(request).await.unwrap();
+    // pub async fn upload(self, client: &Client) -> GlobalBlob {
+    //     let request = DataUploadRequest::builder().data(self.data).build();
+    //     let response = client.request(request).await.unwrap();
 
-        GlobalBlob {
-            id: response.data_id.into(),
-            data: Some(self.data),
-        }
-    }
+    //     GlobalBlob {
+    //         id: response.data_id.into(),
+    //         data: Some(self.data),
+    //     }
+    // }
 }
 
 #[derive(Debug)]
