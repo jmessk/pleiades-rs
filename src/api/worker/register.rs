@@ -25,12 +25,12 @@ pub struct WorkerRegisterRequest<'a> {
 impl<'a> Request for WorkerRegisterRequest<'a> {
     type Response = WorkerRegisterResponse;
 
-    fn endpoint(&self) -> String {
-        "worker".to_string()
+    fn endpoint(&self) -> Cow<'static, str> {
+        "worker".into()
     }
 
     async fn send(
-        &self,
+        self,
         client: &reqwest::Client,
         host: &url::Url,
     ) -> Result<WorkerRegisterResponse> {

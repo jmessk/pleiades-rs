@@ -47,12 +47,12 @@ pub struct WorkerContractRequest<'a> {
 impl<'a> Request for WorkerContractRequest<'a> {
     type Response = WorkerContractResponse;
 
-    fn endpoint(&self) -> String {
-        format!("worker/{}/contract", self.worker_id)
+    fn endpoint(&self) -> Cow<'static, str> {
+        format!("worker/{}/contract", self.worker_id).into()
     }
 
     async fn send(
-        &self,
+        self,
         client: &reqwest::Client,
         host: &url::Url,
     ) -> Result<WorkerContractResponse> {

@@ -42,11 +42,11 @@ pub struct JobInfoRequest<'a> {
 impl<'a> Request for JobInfoRequest<'a> {
     type Response = JobInfoResponse;
 
-    fn endpoint(&self) -> String {
-        format!("job/{}", self.job_id)
+    fn endpoint(&self) -> Cow<'static, str> {
+        format!("job/{}", self.job_id).into()
     }
 
-    async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<JobInfoResponse> {
+    async fn send(self, client: &reqwest::Client, host: &url::Url) -> Result<JobInfoResponse> {
         let endpoint = host.join(&self.endpoint()).unwrap();
         let request = match &self.except {
             Some(except) => client

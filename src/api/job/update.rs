@@ -37,11 +37,11 @@ pub struct JobUpdateRequest<'a> {
 impl<'a> Request for JobUpdateRequest<'a> {
     type Response = JobUpdateResponse;
 
-    fn endpoint(&self) -> String {
-        format!("job/{}", self.job_id)
+    fn endpoint(&self) -> Cow<'static, str> {
+        format!("job/{}", self.job_id).into()
     }
 
-    async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<JobUpdateResponse> {
+    async fn send(self, client: &reqwest::Client, host: &url::Url) -> Result<JobUpdateResponse> {
         let endpoint = host.join(&self.endpoint()).unwrap();
         let request = client.post(endpoint).json(&self).build()?;
 

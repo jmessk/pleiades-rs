@@ -21,4 +21,8 @@ impl Lambda {
     pub fn blob(&self) -> &GlobalBlob {
         &self.blob
     }
+
+    pub async fn create() -> Self {
+        todo!()
+    }
 }

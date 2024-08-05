@@ -14,3 +14,15 @@ impl From<String> for Id {
         Id { id }
     }
 }
+
+impl From<&str> for Id {
+    fn from(id: &str) -> Self {
+        Id { id: id.to_string() }
+    }
+}
+
+impl std::fmt::Display for Id {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.id)
+    }
+}

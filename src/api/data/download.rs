@@ -28,12 +28,12 @@ pub struct DataDownloadRequest<'a> {
 impl<'a> Request for DataDownloadRequest<'a> {
     type Response = DataDownloadResponse;
 
-    fn endpoint(&self) -> String {
-        format!("data/{}/blob", self.data_id)
+    fn endpoint(&self) -> Cow<'static, str> {
+        format!("data/{}/blob", self.data_id).into()
     }
 
     async fn send(
-        &self,
+        self,
         client: &reqwest::Client,
         host: &url::Url,
     ) -> Result<DataDownloadResponse> {
@@ -60,7 +60,7 @@ impl Response for DataDownloadResponse {
     async fn from_response(response: reqwest::Response) -> Result<DataDownloadResponse> {
         let content_type = response.headers().get("content-type");
 
-        if let None = content_type {
+        if content_type.is_none() {
             let error = response.text().await?;
             log::error!("failed to download data: {}", error);
 

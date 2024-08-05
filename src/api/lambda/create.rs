@@ -32,12 +32,12 @@ pub struct LambdaCreateRequest<'a> {
 impl<'a> Request for LambdaCreateRequest<'a> {
     type Response = LambdaCreateResponse;
 
-    fn endpoint(&self) -> String {
-        "lambda".to_string()
+    fn endpoint(&self) -> Cow<'static, str> {
+        "lambda".into()
     }
 
     async fn send(
-        &self,
+        self,
         client: &reqwest::Client,
         host: &url::Url,
     ) -> Result<LambdaCreateResponse> {

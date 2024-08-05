@@ -5,6 +5,8 @@ mod kv;
 mod lambda;
 mod worker;
 
+use std::borrow::Cow;
+
 pub use data::{download::DataDownloadRequest, upload::DataUploadRequest};
 pub use error::ErrorResponse;
 pub use job::{create::JobCreateRequest, info::JobInfoRequest, update::JobUpdateRequest};
@@ -14,10 +16,10 @@ pub use worker::{contract::WorkerContractRequest, register::WorkerRegisterReques
 pub trait Request {
     type Response: Response;
 
-    fn endpoint(&self) -> String;
+    fn endpoint(&self) -> Cow<'static, str>;
 
     fn send(
-        &self,
+        self,
         client: &reqwest::Client,
         host: &url::Url,
     ) -> impl std::future::Future<Output = Result<Self::Response>> + Send;
@@ -25,6 +27,7 @@ pub trait Request {
 
 pub trait Response {
     type Response: Response;
+
     fn from_response(
         response: reqwest::Response,
     ) -> impl std::future::Future<Output = Result<Self::Response>> + Send;

@@ -18,29 +18,31 @@ use crate::api::{Error, ErrorResponse, Request, Response, Result};
 /// let data_id = response.data_id;
 /// ```
 #[derive(Debug, typed_builder::TypedBuilder)]
-pub struct DataUploadRequest<'a> {
+pub struct DataUploadRequest {
     /// byte data to upload
     #[builder(setter(into))]
-    data: Cow<'a, [u8]>,
+    data: Cow<'static, [u8]>,
 }
 
-impl<'a> Request for DataUploadRequest<'a> {
+impl Request for DataUploadRequest {
     type Response = DataUploadResponse;
 
-    fn endpoint(&self) -> String {
-        "data".to_string()
+    fn endpoint(&self) -> Cow<'static, str> {
+        "data".into()
     }
 
-    async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<DataUploadResponse> {
-        let multipart = {
-            let part = multipart::Part::bytes(self.data.to_vec()).file_name("data");
+    async fn send(self, client: &reqwest::Client, host: &url::Url) -> Result<DataUploadResponse> {
+        let len = self.data.len();
+        let endpoint = host.join(&self.endpoint()).unwrap();
+
+        let form = {
+            let part = multipart::Part::bytes(self.data).file_name("data");
             multipart::Form::new().part("file", part)
         };
 
-        let endpoint = host.join(&self.endpoint()).unwrap();
-        let request = client.post(endpoint).multipart(multipart).build()?;
+        let request = client.post(endpoint).multipart(form).build()?;
 
-        log::debug!("uploading data: {} bytes", self.data.len());
+        log::debug!("uploading data: {} bytes", len);
 
         let response = client.execute(request).await?;
         DataUploadResponse::from_response(response).await
