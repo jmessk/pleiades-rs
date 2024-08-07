@@ -1,3 +1,4 @@
+use bytes::Bytes;
 use reqwest::multipart;
 use std::borrow::Cow;
 
@@ -22,6 +23,7 @@ pub struct DataUploadRequest {
     /// byte data to upload
     #[builder(setter(into))]
     data: Cow<'static, [u8]>,
+    // data: Bytes,
 }
 
 impl Request for DataUploadRequest {
@@ -36,7 +38,7 @@ impl Request for DataUploadRequest {
         let endpoint = host.join(&self.endpoint()).unwrap();
 
         let form = {
-            let part = multipart::Part::bytes(self.data).file_name("data");
+            let part = multipart::Part::bytes(self.data.to_vec()).file_name("data");
             multipart::Form::new().part("file", part)
         };
 
