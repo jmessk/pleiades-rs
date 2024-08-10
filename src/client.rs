@@ -1,25 +1,17 @@
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
+use bytes::Bytes;
 use reqwest::IntoUrl;
 
-use crate::{
-    api,
-    blob::{Blob, BlobBuilder},
-    lambda::LambdaBuilder,
-};
+use crate::{api, job::Job, Blob, Id, Lambda, Runtime};
 
-// #[derive(Debug, typed_builder::TypedBuilder)]
-// pub struct Inner {
-//     #[builder(default = reqwest::Client::new())]
-//     client: reqwest::Client,
-//     #[builder(setter(transform = |url: impl IntoUrl| url.into_url().expect("invalid host")))]
-//     host: url::Url,
-// }
-
-#[derive(Debug)]
+#[derive(Debug, typed_builder::TypedBuilder)]
 struct Inner {
+    #[builder(default = reqwest::Client::new())]
     client: reqwest::Client,
+
+    #[builder(setter(into))]
     host: url::Url,
 }
 
@@ -81,11 +73,41 @@ impl Client {
         request.send(self.client(), self.host()).await
     }
 
-    pub fn blob(&self) -> BlobBuilder {
-        BlobBuilder::new(self.clone())
+    pub async fn upload(&self, data: impl Into<Bytes>) -> Result<Blob> {
+        let request = api::DataUploadRequest::builder()
+            .data(data.into().clone())
+            .build();
+        let response = self.send(request).await?;
+
+        Ok(Blob {
+            id: response.data_id.into(),
+        })
     }
 
-    pub fn lambda(&self) -> LambdaBuilder {
-        LambdaBuilder::new(self.clone())
+    pub async fn download(&self, id: impl Into<Id>) -> Result<Bytes> {
+        let id: Id = id.into();
+        let request = api::DataDownloadRequest::builder()
+            .data_id(id.as_str())
+            .build();
+
+        let response = self.send(request).await?;
+
+        Ok(response.data)
+    }
+
+    pub async fn create_lambda(&self, code: Blob, runtime: Runtime) -> Result<Lambda> {
+        let request = api::LambdaCreateRequest::builder()
+            .runtime("")
+            .data_id(code.id.as_str())
+            .build();
+
+        let response = self.send(request).await?;
+
+        Ok(Lambda {
+            client: self.clone(),
+            id: response.lambda_id.into(),
+            runtime,
+            blob: code,
+        })
     }
 }

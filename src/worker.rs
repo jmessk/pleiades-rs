@@ -1,5 +1,5 @@
-use crate::id::Id;
-use crate::runtime::Runtime;
+use crate::Id;
+use crate::Runtime;
 
 pub struct Worker {
     pub id: Id,

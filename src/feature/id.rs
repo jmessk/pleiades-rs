@@ -1,6 +1,8 @@
+use std::borrow::Cow;
+
 #[derive(Debug, typed_builder::TypedBuilder)]
 pub struct Id {
-    pub id: String,
+    pub id: Cow<'static, str>,
 }
 
 impl Id {
@@ -11,13 +13,15 @@ impl Id {
 
 impl From<String> for Id {
     fn from(id: String) -> Self {
-        Id { id }
+        Id { id: Cow::Owned(id) }
     }
 }
 
-impl From<&str> for Id {
-    fn from(id: &str) -> Self {
-        Id { id: id.to_string() }
+impl From<&'static str> for Id {
+    fn from(id: &'static str) -> Self {
+        Id {
+            id: Cow::Borrowed(id),
+        }
     }
 }
 

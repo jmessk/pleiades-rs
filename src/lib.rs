@@ -2,14 +2,14 @@ pub mod api;
 mod client;
 
 mod blob;
+mod job;
 mod lambda;
 mod worker;
 
-mod id;
-mod runtime;
+mod feature;
 
 pub use blob::Blob;
 pub use client::Client;
-// pub use lambda;
+pub use lambda::Lambda;
 
-pub use runtime::Runtime;
+pub use feature::{Id, Runtime};
