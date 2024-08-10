@@ -47,7 +47,11 @@ async fn main() -> anyhow::Result<()> {
 async fn requester(client: Client) -> Result<()> {
     // lambda blob
     let lambda_blob = client
-        .send(DataUploadRequest::builder().data(b"").build())
+        .send(
+            DataUploadRequest::builder()
+                .data(bytes::Bytes::from_static(b""))
+                .build(),
+        )
         .await?;
 
     // lambda

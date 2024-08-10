@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use reqwest::multipart;
+use reqwest::multipart::{Form, Part};
 use std::borrow::Cow;
 
 use crate::api::{Error, ErrorResponse, Request, Response, Result};
@@ -22,8 +22,8 @@ use crate::api::{Error, ErrorResponse, Request, Response, Result};
 pub struct DataUploadRequest {
     /// byte data to upload
     #[builder(setter(into))]
-    data: Cow<'static, [u8]>,
-    // data: Bytes,
+    // data: Cow<'static, [u8]>,
+    data: Bytes,
 }
 
 impl Request for DataUploadRequest {
@@ -38,8 +38,8 @@ impl Request for DataUploadRequest {
         let endpoint = host.join(&self.endpoint()).unwrap();
 
         let form = {
-            let part = multipart::Part::bytes(self.data.to_vec()).file_name("data");
-            multipart::Form::new().part("file", part)
+            let part = Part::bytes(self.data.to_vec());
+            Form::new().part("file", part)
         };
 
         let request = client.post(endpoint).multipart(form).build()?;

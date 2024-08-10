@@ -1,61 +1,57 @@
+use anyhow::Result;
+use bytes::Bytes;
+
 use crate::api::{DataDownloadRequest, DataUploadRequest};
 use crate::id::Id;
 use crate::Client;
 
-use anyhow::Result;
-use bytes::Bytes;
-use std::borrow::Cow;
-use std::io::Read;
-
-#[derive(Debug, typed_builder::TypedBuilder)]
-pub struct LocalBlob {
+#[derive(Debug)]
+pub struct BlobBuilder {
     client: Client,
-    #[builder(setter(into))]
-    // data: Cow<'static, [u8]>,
-    // #[builder(setter(transform = |data: Cow<'static, [u8]>| data.into_owned()))]
-    data: Bytes,
+    data: Option<Bytes>,
 }
 
-impl LocalBlob {
-    pub fn data(&self) -> &[u8] {
-        &self.data
+impl BlobBuilder {
+    pub fn new(client: Client) -> Self {
+        Self { client, data: None }
     }
 
-    pub fn input(&mut self, data: Cow<'static, [u8]>) {
-        self.data = Bytes::from_static(&data);
+    pub fn data(mut self, data: Bytes) -> Self {
+        self.data = Some(data);
+        self
     }
 
-    pub async fn upload(self) -> Result<GlobalBlob> {
-        let request = DataUploadRequest::builder().data(self.data).build();
+    pub async fn build(self) -> Result<Blob> {
+        let data = self.data.expect("data is required");
 
+        let request = DataUploadRequest::builder().data(data.clone()).build();
         let response = self.client.send(request).await?;
 
-        Ok(GlobalBlob {
-            client: self.client,
+        Ok(Blob {
             id: response.data_id.into(),
+            data: data,
         })
     }
 }
 
 #[derive(Debug)]
-pub struct GlobalBlob {
-    client: Client,
+pub struct Blob {
     id: Id,
+    data: Bytes,
 }
 
-impl GlobalBlob {
+impl Blob {
     pub fn id(&self) -> &Id {
         &self.id
     }
 
-    pub async fn download(self) -> Result<LocalBlob> {
-        let request = DataDownloadRequest::builder().data_id(self.id.id()).build();
-
-        let response = self.client.send(request).await?;
-
-        Ok(LocalBlob {
-            client: self.client,
-            data: response.data.as_ref(),
-        })
+    pub fn data(&self) -> Bytes {
+        self.data.clone()
     }
+}
+
+#[derive(Debug)]
+pub struct RemoteBlob {
+    client: Client,
+    id: Id,
 }

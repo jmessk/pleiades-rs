@@ -10,5 +10,5 @@ async fn main() {
         .build()
         .unwrap();
 
-    let input = client.blob().data(b"").build();
+    // let input = client.blob().data(bytes::Bytes::from_static(b"")).build();
 }

@@ -3,7 +3,11 @@ use std::sync::Arc;
 use anyhow::{Context, Result};
 use reqwest::IntoUrl;
 
-use crate::{api, blob::LocalBlobBuilder, LocalBlob};
+use crate::{
+    api,
+    blob::{Blob, BlobBuilder},
+    lambda::LambdaBuilder,
+};
 
 // #[derive(Debug, typed_builder::TypedBuilder)]
 // pub struct Inner {
@@ -26,7 +30,7 @@ pub struct ClientBuilder {
 }
 
 impl ClientBuilder {
-    pub fn builder() -> Self {
+    pub fn new() -> Self {
         Self {
             client: None,
             host: None,
@@ -62,7 +66,7 @@ pub struct Client {
 
 impl Client {
     pub fn builder() -> ClientBuilder {
-        ClientBuilder::builder()
+        ClientBuilder::new()
     }
 
     pub fn client(&self) -> &reqwest::Client {
@@ -77,7 +81,11 @@ impl Client {
         request.send(self.client(), self.host()).await
     }
 
-    pub fn blob(&self) -> LocalBlobBuilder<((Client,), ())> {
-        LocalBlob::builder().client(self.clone())
+    pub fn blob(&self) -> BlobBuilder {
+        BlobBuilder::new(self.clone())
+    }
+
+    pub fn lambda(&self) -> LambdaBuilder {
+        LambdaBuilder::new(self.clone())
     }
 }

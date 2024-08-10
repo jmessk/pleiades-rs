@@ -8,7 +8,7 @@ mod worker;
 mod id;
 mod runtime;
 
-pub use blob::{GlobalBlob, LocalBlob};
+pub use blob::Blob;
 pub use client::Client;
 // pub use lambda;
 

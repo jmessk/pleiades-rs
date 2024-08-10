@@ -64,7 +64,9 @@ async fn worker(client: Client, job_id: String) -> Result<()> {
     let _ = client.send(request).await?;
 
     // output
-    let request = DataUploadRequest::builder().data(b"").build();
+    let request = DataUploadRequest::builder()
+        .data(bytes::Bytes::from_static(b""))
+        .build();
     let output_blob = client.send(request).await?;
 
     // update job

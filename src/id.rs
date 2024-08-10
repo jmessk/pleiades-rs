@@ -4,7 +4,7 @@ pub struct Id {
 }
 
 impl Id {
-    pub fn id(&self) -> &str {
+    pub fn as_str(&self) -> &str {
         &self.id
     }
 }
