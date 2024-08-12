@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-#[derive(Debug, typed_builder::TypedBuilder)]
+#[derive(Debug, Clone, typed_builder::TypedBuilder)]
 pub struct Id {
     pub id: Cow<'static, str>,
 }

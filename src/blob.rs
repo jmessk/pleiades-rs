@@ -1,23 +1,39 @@
 use anyhow::Result;
 use bytes::Bytes;
 
-use crate::api::{DataDownloadRequest, DataUploadRequest};
-use crate::Client;
 use crate::Id;
+use crate::{api, Client, Lambda, Runtime};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Blob {
+    pub client: Client,
     pub id: Id,
 }
 
 impl Blob {
-    pub fn from_id(id: impl Into<Id>) -> Self {
-        Self { id: id.into() }
-    }
-}
+    pub async fn fetch(&self) -> Result<Bytes> {
+        let request = api::DataDownloadRequest::builder()
+            .data_id(self.id.as_str())
+            .build();
 
-impl From<Blob> for Id {
-    fn from(blob: Blob) -> Self {
-        blob.id
+        let response = self.client.send(request).await?;
+
+        Ok(response.data)
+    }
+
+    pub async fn into_lambda(self, runtime: Runtime) -> Result<Lambda> {
+        let request = api::LambdaCreateRequest::builder()
+            .runtime(runtime.as_str())
+            .data_id(self.id.as_str())
+            .build();
+
+        let response = self.client.send(request).await?;
+
+        Ok(crate::Lambda {
+            client: self.client.clone(),
+            id: response.lambda_id.into(),
+            runtime,
+            blob: self,
+        })
     }
 }

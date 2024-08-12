@@ -23,7 +23,7 @@ pub struct DataUploadRequest {
     /// byte data to upload
     #[builder(setter(into))]
     // data: Cow<'static, [u8]>,
-    data: Bytes,
+    pub data: Bytes,
 }
 
 impl Request for DataUploadRequest {

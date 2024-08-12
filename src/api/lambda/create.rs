@@ -22,11 +22,11 @@ pub struct LambdaCreateRequest<'a> {
     /// blob data id as lambda code
     #[builder(setter(into))]
     #[serde(rename = "codex")]
-    data_id: Cow<'a, str>,
+    pub data_id: Cow<'a, str>,
 
     /// runtime that supports the lambda
     #[builder(setter(into))]
-    runtime: Cow<'a, str>,
+    pub runtime: Cow<'a, str>,
 }
 
 impl<'a> Request for LambdaCreateRequest<'a> {

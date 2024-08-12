@@ -1,7 +1,7 @@
 use anyhow::Result;
 use std::env;
 
-use pleiades::api::*;
+use pleiades::api;
 use pleiades::Client;
 
 #[tokio::main]
@@ -16,94 +16,57 @@ async fn main() -> anyhow::Result<()> {
         .host("http://pleiades.local:8332/api/v0.5/")
         .build()?;
 
-    // job_num is the number of jobs to be created
-    // if not provided, default to 10
-    // Usage: ./requester <job_num>
-    let job_num: usize = {
-        let args: Vec<String> = env::args().collect();
-        if 3 < args.len() {
-            eprintln!("Usage: {}", args[0]);
-            eprintln!("Usage: {} <job_num>", args[0]);
-            std::process::exit(1);
-        }
-        if args.len() == 1 {
-            1
-        } else {
-            args[1].parse::<usize>().unwrap()
-        }
+    // blob as lambda code
+    let code_blob = {
+        let request = api::DataUploadRequest::builder().data("example lambda").build();
+        client.send(request).await?
     };
 
-    let tasks = (0..job_num)
-        .map(|_| {
-            let client = client.clone();
-            tokio::spawn(async move { requester(client).await.unwrap() })
-        })
-        .collect::<Vec<_>>();
-
-    futures::future::join_all(tasks).await;
-    Ok(())
-}
-
-async fn requester(client: Client) -> Result<()> {
-    // lambda blob
-    let lambda_blob = client
-        .send(
-            DataUploadRequest::builder()
-                .data(bytes::Bytes::from_static(b""))
-                .build(),
-        )
-        .await?;
-
     // lambda
-    let lambda = client
-        .send(
-            LambdaCreateRequest::builder()
-                .data_id(lambda_blob.data_id)
-                .runtime("test+mecrs")
-                .build(),
-        )
-        .await?;
+    let lambda = {
+        let request = api::LambdaCreateRequest::builder()
+            .data_id(code_blob.data_id)
+            .runtime("test+mecrs")
+            .build();
+
+        client.send(request).await?
+    };
 
     // input blob
-    let input_blob = client
-        .send(
-            DataUploadRequest::builder()
-                .data(bytes::Bytes::from_static(
-                    b"hello world, this is a test input for the lambda function",
-                ))
-                .build(),
-        )
-        .await?;
+    let input_blob = {
+        let request = api::DataUploadRequest::builder().data("example input").build();
+        client.send(request).await?
+    };
 
     // create job
-    let job_create = client
-        .send(
-            JobCreateRequest::builder()
-                .lambda_id(lambda.lambda_id)
-                .data_id(input_blob.data_id)
-                .build(),
-        )
-        .await?;
+    let create_job = {
+        let request = api::JobCreateRequest::builder()
+            .lambda_id(lambda.lambda_id)
+            .data_id(input_blob.data_id)
+            .build();
+
+        client.send(request).await?
+    };
 
     // wait for finish
-    let job_info = client
-        .send(
-            JobInfoRequest::builder()
-                .job_id(job_create.job_id)
-                .except("Finished")
-                .timeout(10)
-                .build(),
-        )
-        .await?;
+    let job_info = {
+        let request = api::JobInfoRequest::builder()
+            .job_id(create_job.job_id)
+            .except("Finished")
+            .timeout(10)
+            .build();
+
+        client.send(request).await?
+    };
 
     // download output
-    let _ = client
-        .send(
-            DataDownloadRequest::builder()
-                .data_id(job_info.output.unwrap().data_id)
-                .build(),
-        )
-        .await?;
+    let _output_blob = {
+        let request = api::DataDownloadRequest::builder()
+            .data_id(job_info.output.unwrap().data_id)
+            .build();
+
+        client.send(request).await?
+    };
 
     Ok(())
 }

@@ -7,11 +7,21 @@ mod worker;
 
 use std::borrow::Cow;
 
-pub use data::{download::DataDownloadRequest, upload::DataUploadRequest};
+pub use data::{
+    download::{DataDownloadRequest, DataDownloadResponse},
+    upload::{DataUploadRequest, DataUploadResponse},
+};
 pub use error::ErrorResponse;
-pub use job::{create::JobCreateRequest, info::JobInfoRequest, update::JobUpdateRequest};
-pub use lambda::create::LambdaCreateRequest;
-pub use worker::{contract::WorkerContractRequest, register::WorkerRegisterRequest};
+pub use job::{
+    create::{JobCreateRequest, JobCreateResponse},
+    info::{JobInfoRequest, JobInfoResponse},
+    update::{JobUpdateRequest, JobUpdateResponse},
+};
+pub use lambda::create::{LambdaCreateRequest, LambdaCreateResponse};
+pub use worker::{
+    contract::{WorkerContractRequest, WorkerContractResponse},
+    register::{WorkerRegisterRequest, WorkerRegisterResponse},
+};
 
 pub trait Request {
     type Response: Response;
@@ -33,6 +43,8 @@ pub trait Response {
     ) -> impl std::future::Future<Output = Result<Self::Response>> + Send;
 }
 
+pub type Result<T> = std::result::Result<T, Error>;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("failed to send request: {0}")]
@@ -47,5 +59,3 @@ pub enum Error {
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }
-
-pub type Result<T> = std::result::Result<T, Error>;

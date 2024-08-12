@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use bytes::Bytes;
 use reqwest::IntoUrl;
 
-use crate::{api, job::Job, Blob, Id, Lambda, Runtime};
+use crate::{api, job::Job, Blob, Id, Lambda};
 
 #[derive(Debug, typed_builder::TypedBuilder)]
 struct Inner {
@@ -70,44 +70,30 @@ impl Client {
     }
 
     pub async fn send<T: api::Request>(&self, request: T) -> api::Result<T::Response> {
-        request.send(self.client(), self.host()).await
+        request.send(&self.inner.client, &self.inner.host).await
     }
 
-    pub async fn upload(&self, data: impl Into<Bytes>) -> Result<Blob> {
+    pub async fn new_blob(&self, data: impl Into<Bytes>) -> Result<Blob> {
         let request = api::DataUploadRequest::builder()
             .data(data.into().clone())
             .build();
+
         let response = self.send(request).await?;
 
         Ok(Blob {
+            client: self.clone(),
             id: response.data_id.into(),
         })
     }
 
-    pub async fn download(&self, id: impl Into<Id>) -> Result<Bytes> {
-        let id: Id = id.into();
-        let request = api::DataDownloadRequest::builder()
-            .data_id(id.as_str())
-            .build();
-
-        let response = self.send(request).await?;
-
-        Ok(response.data)
+    pub fn blob_from_id(&self, id: impl Into<Id>) -> Blob {
+        Blob {
+            client: self.clone(),
+            id: id.into(),
+        }
     }
 
-    pub async fn create_lambda(&self, code: Blob, runtime: Runtime) -> Result<Lambda> {
-        let request = api::LambdaCreateRequest::builder()
-            .runtime("")
-            .data_id(code.id.as_str())
-            .build();
-
-        let response = self.send(request).await?;
-
-        Ok(Lambda {
-            client: self.clone(),
-            id: response.lambda_id.into(),
-            runtime,
-            blob: code,
-        })
+    pub async fn lambda_from_id(&self, id: impl Into<Id>) -> Result<Lambda> {
+        todo!()
     }
 }
