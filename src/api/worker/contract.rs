@@ -34,14 +34,14 @@ pub struct WorkerContractRequest<'a> {
     /// worker ID using to contract
     #[builder(setter(into))]
     #[serde(rename = "id")]
-    worker_id: Cow<'a, str>,
+    pub worker_id: Cow<'a, str>,
 
     /// tags to associate with contracting a job
     #[builder(default)]
-    tags: Vec<Cow<'a, str>>,
+    pub tags: Vec<Cow<'a, str>>,
 
     /// timeout in seconds to wait for a job
-    timeout: u32,
+    pub timeout: u32,
 }
 
 impl<'a> Request for WorkerContractRequest<'a> {

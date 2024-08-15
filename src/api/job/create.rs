@@ -27,18 +27,18 @@ pub struct JobCreateRequest<'a> {
     /// blob data ID as job input
     #[builder(setter(into))]
     #[serde(rename = "input")]
-    data_id: Cow<'a, str>,
+    pub data_id: Cow<'a, str>,
 
     /// lambda ID to execute the job
     #[builder(setter(into))]
     #[serde(rename = "lambda")]
-    lambda_id: Cow<'a, str>,
+    pub lambda_id: Cow<'a, str>,
 
     /// tags to associate with the job
     ///
     /// default: empty
     #[builder(default)]
-    tags: Vec<Cow<'a, str>>,
+    pub tags: Vec<Cow<'a, str>>,
 }
 
 impl<'a> Request for JobCreateRequest<'a> {

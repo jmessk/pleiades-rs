@@ -22,16 +22,16 @@ pub struct JobUpdateRequest<'a> {
     /// job ID to update
     #[builder(setter(into))]
     #[serde(skip_serializing)]
-    job_id: Cow<'a, str>,
+    pub job_id: Cow<'a, str>,
 
     /// output data ID
     #[builder(setter(into))]
     #[serde(rename = "output")]
-    data_id: Cow<'a, str>,
+    pub data_id: Cow<'a, str>,
 
     /// job status to set
     #[builder(setter(into))]
-    status: Cow<'a, str>,
+    pub status: Cow<'a, str>,
 }
 
 impl<'a> Request for JobUpdateRequest<'a> {

@@ -4,7 +4,7 @@ use crate::{api, blob::Blob, job::Job, Client, Id, Runtime};
 
 #[derive(Debug, Clone)]
 pub struct Lambda {
-    pub client: Client,
+    pub(crate) client: Client,
     pub id: Id,
     pub runtime: Runtime,
     pub blob: Blob,

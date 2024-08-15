@@ -22,7 +22,7 @@ use crate::api::{Error, ErrorResponse, Request, Response, Result};
 pub struct DataDownloadRequest<'a> {
     /// blob data ID to download
     #[builder(setter(into))]
-    data_id: Cow<'a, str>,
+    pub data_id: Cow<'a, str>,
 }
 
 impl<'a> Request for DataDownloadRequest<'a> {

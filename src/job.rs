@@ -10,7 +10,7 @@ pub enum Status {
 }
 
 pub struct Job {
-    pub client: Client,
+    pub(crate) client: Client,
     pub id: Id,
     pub lambda: Lambda,
     pub input: Blob,

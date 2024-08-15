@@ -6,7 +6,7 @@ use crate::{api, Client, Lambda, Runtime};
 
 #[derive(Debug, Clone)]
 pub struct Blob {
-    pub client: Client,
+    pub(crate) client: Client,
     pub id: Id,
 }
 

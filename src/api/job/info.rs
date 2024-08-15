@@ -28,15 +28,15 @@ use crate::api::{Error, ErrorResponse, Request, Response, Result};
 pub struct JobInfoRequest<'a> {
     /// job ID to get info
     #[builder(setter(into))]
-    job_id: Cow<'a, str>,
+    pub job_id: Cow<'a, str>,
 
     /// except job status. use with timeout
     #[builder(default, setter(strip_option, into))]
-    except: Option<Cow<'a, str>>,
+    pub except: Option<Cow<'a, str>>,
 
     /// job info request timeout. use with except
     #[builder(default, setter(strip_option))]
-    timeout: Option<u32>,
+    pub timeout: Option<u32>,
 }
 
 impl<'a> Request for JobInfoRequest<'a> {
