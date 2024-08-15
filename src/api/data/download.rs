@@ -33,7 +33,7 @@ impl<'a> Request for DataDownloadRequest<'a> {
     }
 
     async fn send(
-        self,
+        &self,
         client: &reqwest::Client,
         host: &url::Url,
     ) -> Result<DataDownloadResponse> {

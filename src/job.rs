@@ -49,12 +49,12 @@ impl Job {
             .job_id(self.id.as_str())
             .build();
 
-        let response = self.client.send(request).await?;
+        let response = self.client.send(&request).await?;
 
         Ok(self.convert(response))
     }
 
-    pub async fn wait(&self, status: Status, timeout: u32) -> anyhow::Result<Self> {
+    pub async fn wait_status(&self, status: Status, timeout: u32) -> anyhow::Result<Self> {
         todo!()
     }
 
@@ -65,7 +65,7 @@ impl Job {
             .timeout(timeout)
             .build();
 
-        let response = self.client.send(request).await?;
+        let response = self.client.send(&request).await?;
 
         match self.convert(response) {
             Status::Finished(job) => Ok(job),

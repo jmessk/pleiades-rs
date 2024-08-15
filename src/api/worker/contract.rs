@@ -52,7 +52,7 @@ impl<'a> Request for WorkerContractRequest<'a> {
     }
 
     async fn send(
-        self,
+        &self,
         client: &reqwest::Client,
         host: &url::Url,
     ) -> Result<WorkerContractResponse> {

@@ -29,7 +29,7 @@ pub trait Request {
     fn endpoint(&self) -> Cow<'static, str>;
 
     fn send(
-        self,
+        &self,
         client: &reqwest::Client,
         host: &url::Url,
     ) -> impl std::future::Future<Output = Result<Self::Response>> + Send;

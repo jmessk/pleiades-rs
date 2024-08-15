@@ -33,8 +33,7 @@ impl Request for DataUploadRequest {
         "data".into()
     }
 
-    async fn send(self, client: &reqwest::Client, host: &url::Url) -> Result<DataUploadResponse> {
-        let len = self.data.len();
+    async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<DataUploadResponse> {
         let endpoint = host.join(&self.endpoint()).unwrap();
 
         let form = {
@@ -44,7 +43,7 @@ impl Request for DataUploadRequest {
 
         let request = client.post(endpoint).multipart(form).build()?;
 
-        log::debug!("uploading data: {} bytes", len);
+        log::debug!("uploading data: {} bytes", self.data.len());
 
         let response = client.execute(request).await?;
         DataUploadResponse::from_response(response).await

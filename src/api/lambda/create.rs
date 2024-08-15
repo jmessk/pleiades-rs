@@ -37,7 +37,7 @@ impl<'a> Request for LambdaCreateRequest<'a> {
     }
 
     async fn send(
-        self,
+        &self,
         client: &reqwest::Client,
         host: &url::Url,
     ) -> Result<LambdaCreateResponse> {

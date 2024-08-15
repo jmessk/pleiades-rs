@@ -1,6 +1,3 @@
-use anyhow::Result;
-use std::env;
-
 use pleiades::api;
 use pleiades::Client;
 
@@ -18,34 +15,42 @@ async fn main() -> anyhow::Result<()> {
 
     // blob as lambda code
     let code_blob = {
-        let request = api::DataUploadRequest::builder().data("example lambda").build();
-        client.send(request).await?
+        let request = api::DataUploadRequest::builder()
+            .data(r#"
+                console.log("hello world");
+            "#)
+            .build();
+
+        client.send(&request).await?
     };
 
     // lambda
     let lambda = {
         let request = api::LambdaCreateRequest::builder()
             .data_id(code_blob.data_id)
-            .runtime("test+mecrs")
+            .runtime("mecrm-rs+example")
             .build();
 
-        client.send(request).await?
+        client.send(&request).await?
     };
 
     // input blob
-    let input_blob = {
-        let request = api::DataUploadRequest::builder().data("example input").build();
-        client.send(request).await?
+    let input = {
+        let request = api::DataUploadRequest::builder()
+            .data("example input")
+            .build();
+
+        client.send(&request).await?
     };
 
     // create job
     let create_job = {
         let request = api::JobCreateRequest::builder()
             .lambda_id(lambda.lambda_id)
-            .data_id(input_blob.data_id)
+            .data_id(input.data_id)
             .build();
 
-        client.send(request).await?
+        client.send(&request).await?
     };
 
     // wait for finish
@@ -56,16 +61,16 @@ async fn main() -> anyhow::Result<()> {
             .timeout(10)
             .build();
 
-        client.send(request).await?
+        client.send(&request).await?
     };
 
     // download output
-    let _output_blob = {
+    let _output = {
         let request = api::DataDownloadRequest::builder()
             .data_id(job_info.output.unwrap().data_id)
             .build();
 
-        client.send(request).await?
+        client.send(&request).await?
     };
 
     Ok(())

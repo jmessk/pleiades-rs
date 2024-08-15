@@ -30,7 +30,7 @@ impl<'a> Request for WorkerRegisterRequest<'a> {
     }
 
     async fn send(
-        self,
+        &self,
         client: &reqwest::Client,
         host: &url::Url,
     ) -> Result<WorkerRegisterResponse> {

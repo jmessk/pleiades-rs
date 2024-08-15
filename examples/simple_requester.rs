@@ -10,20 +10,21 @@ async fn main() -> anyhow::Result<()> {
     // create lambda
     let lambda = {
         // create lambda code as blob
-        let code = client.new_blob("test lambda").await?;
+        let code = client.new_blob("example lambda").await?;
 
         // define runtime
-        let runtime = pleiades::Runtime::builder()
-            .base("mecrm-rs")
-            .add_feature("example")
-            .build();
+        let runtime = pleiades::Runtime::new("mecrm-rs+example");
 
-        // create lambda
+        // create lambda from code blob
         code.into_lambda(runtime).await?
     };
+    // or
+    // let lambda = client.lambda_from_id("<lambda_id>").await?;
 
     // create input
-    let input = client.new_blob("test input").await?;
+    let input = client.new_blob("example input").await?;
+    // or
+    // let input = client.blob_from_id("<data_id>");
 
     let job = lambda
         // run job

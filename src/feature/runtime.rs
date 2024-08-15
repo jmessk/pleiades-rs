@@ -48,17 +48,21 @@ impl RuntimeBuilder {
         match self.features {
             Some(features) => {
                 let runtime = format!("{}+{}", base, features.join("+"));
-                Runtime(runtime)
+                Runtime(runtime.into())
             }
-            None => Runtime(base.into_owned()),
+            None => Runtime(base),
         }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct Runtime(String);
+pub struct Runtime(Cow<'static, str>);
 
 impl Runtime {
+    pub fn new(name: impl Into<Cow<'static, str>>) -> Self {
+        Self(name.into())
+    }
+
     pub fn builder() -> RuntimeBuilder {
         RuntimeBuilder::new()
     }

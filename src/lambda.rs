@@ -27,7 +27,7 @@ impl Lambda {
             .data_id(input.id.as_str())
             .build();
 
-        let response = self.client.send(request).await?;
+        let response = self.client.send(&request).await?;
 
         Ok(Job {
             client: self.client.clone(),

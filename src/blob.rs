@@ -16,7 +16,7 @@ impl Blob {
             .data_id(self.id.as_str())
             .build();
 
-        let response = self.client.send(request).await?;
+        let response = self.client.send(&request).await?;
 
         Ok(response.data)
     }
@@ -27,7 +27,7 @@ impl Blob {
             .data_id(self.id.as_str())
             .build();
 
-        let response = self.client.send(request).await?;
+        let response = self.client.send(&request).await?;
 
         Ok(crate::Lambda {
             client: self.client.clone(),

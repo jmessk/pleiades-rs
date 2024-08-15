@@ -1,6 +1,4 @@
-use anyhow::Result;
-
-use pleiades::{api::*, Client};
+use pleiades::{api, Client};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -15,67 +13,60 @@ async fn main() -> anyhow::Result<()> {
         .build()
         .unwrap();
 
-    let worker_register = client
-        .send(
-            WorkerRegisterRequest::builder()
-                .runtimes(vec!["test+mecrs".into()])
-                .build(),
-        )
-        .await?;
+    let register = {
+        let request = api::WorkerRegisterRequest::builder()
+            .runtimes(vec!["mecrm-rs+example".into()])
+            .build();
 
-    // to exit
-    let mut count = 0;
+        client.send(&request).await?
+    };
 
-    while count < 1 {
-        println!("contracting...");
-        let contracted = client
-            .send(
-                WorkerContractRequest::builder()
-                    .worker_id(&worker_register.worker_id)
-                    .timeout(5)
-                    .build(),
-            )
-            .await?;
+    let contract = api::WorkerContractRequest::builder()
+        .worker_id(register.worker_id)
+        .timeout(10)
+        .build();
 
-        if contracted.job_id.is_none() {
-            count += 1;
-            continue;
-        }
-
-        count = 0;
-
-        let job_id = contracted.job_id.unwrap();
+    while let Some(job_id) = client.send(&contract).await?.job_id {
         let client = client.clone();
-        tokio::spawn(async move { worker(client, job_id).await.unwrap() });
+        tokio::spawn(async move { worker(client.clone(), job_id).await.unwrap() });
     }
+
+    println!("No more job");
 
     Ok(())
 }
 
-async fn worker(client: Client, job_id: String) -> Result<()> {
-    // job info
-    let request = JobInfoRequest::builder().job_id(&job_id).build();
-    let job_info = client.send(request).await?;
+async fn worker(client: Client, job_id: String) -> anyhow::Result<()> {
+    let job_info = {
+        let request = api::JobInfoRequest::builder().job_id(&job_id).build();
+        client.send(&request).await?
+    };
 
-    // download input
-    let request = DataDownloadRequest::builder()
-        .data_id(job_info.input.data_id)
-        .build();
-    let _ = client.send(request).await?;
+    let _input = {
+        let request = api::DataDownloadRequest::builder()
+            .data_id(job_info.input.data_id)
+            .build();
 
-    // output
-    let request = DataUploadRequest::builder()
-        .data(bytes::Bytes::from_static(b""))
-        .build();
-    let output_blob = client.send(request).await?;
+        client.send(&request).await?
+    };
 
-    // update job
-    let request = JobUpdateRequest::builder()
-        .job_id(job_info.job_id)
-        .data_id(output_blob.data_id)
-        .status("finished")
-        .build();
-    let _ = client.send(request).await?;
+    let output = {
+        let request = api::DataUploadRequest::builder()
+            .data("example output")
+            .build();
+
+        client.send(&request).await?
+    };
+
+    let _update = {
+        let request = api::JobUpdateRequest::builder()
+            .job_id(&job_id)
+            .data_id(output.data_id)
+            .status("finished")
+            .build();
+
+        client.send(&request).await?
+    };
 
     println!("Job {} finished", job_id);
 

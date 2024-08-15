@@ -2,7 +2,7 @@ pub mod api;
 mod client;
 
 mod blob;
-mod job;
+pub mod job;
 mod lambda;
 mod worker;
 

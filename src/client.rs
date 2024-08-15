@@ -69,16 +69,13 @@ impl Client {
         &self.inner.host
     }
 
-    pub async fn send<T: api::Request>(&self, request: T) -> api::Result<T::Response> {
+    pub async fn send<T: api::Request>(&self, request: &T) -> api::Result<T::Response> {
         request.send(&self.inner.client, &self.inner.host).await
     }
 
     pub async fn new_blob(&self, data: impl Into<Bytes>) -> Result<Blob> {
-        let request = api::DataUploadRequest::builder()
-            .data(data.into().clone())
-            .build();
-
-        let response = self.send(request).await?;
+        let request = api::DataUploadRequest { data: data.into() };
+        let response = self.send(&request).await?;
 
         Ok(Blob {
             client: self.clone(),
@@ -94,6 +91,10 @@ impl Client {
     }
 
     pub async fn lambda_from_id(&self, id: impl Into<Id>) -> Result<Lambda> {
+        todo!()
+    }
+
+    pub async fn job_from_id(&self, id: impl Into<Id>) -> Result<Job> {
         todo!()
     }
 }
