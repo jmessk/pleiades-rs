@@ -1,5 +1,9 @@
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt::fmt()
+        .with_max_level(tracing::Level::ERROR)
+        .init();
+
     let client = pleiades::Client::builder()
         // .host("https://pleiades.dolylab.cc/api/v0.5-snapshot/")
         // .host("http://192.168.168.127:8332/api/v0.5/")

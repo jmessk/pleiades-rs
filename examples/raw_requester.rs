@@ -3,7 +3,9 @@ use pleiades::Client;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
+    tracing_subscriber::fmt::fmt()
+        .with_max_level(tracing::Level::ERROR)
+        .init();
 
     // create arc client
     let client = Client::builder()
@@ -17,9 +19,11 @@ async fn main() -> anyhow::Result<()> {
     // blob as lambda code
     let code_blob = {
         let request = api::DataUploadRequest::builder()
-            .data(r#"
+            .data(
+                r#"
                 console.log("hello world");
-            "#)
+            "#,
+            )
             .build();
 
         client.send(&request).await?
