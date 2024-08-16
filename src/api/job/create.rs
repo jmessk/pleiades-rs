@@ -38,7 +38,7 @@ pub struct JobCreateRequest<'a> {
     ///
     /// default: empty
     #[builder(default)]
-    pub tags: Vec<Cow<'a, str>>,
+    pub tags: &'a [&'a str],
 }
 
 impl<'a> Request for JobCreateRequest<'a> {
@@ -54,7 +54,9 @@ impl<'a> Request for JobCreateRequest<'a> {
 
         log::debug!("creating job: {:?}", self);
 
+        let start = std::time::Instant::now();
         let response = client.execute(request).await?;
+        println!("job created in {:?}", start.elapsed());
         JobCreateResponse::from_response(response).await
     }
 }

@@ -19,7 +19,7 @@ use crate::api::{Error, ErrorResponse, Request, Response, Result};
 pub struct WorkerRegisterRequest<'a> {
     /// runtimes that the worker supports
     #[serde(rename = "runtime")]
-    pub runtimes: Vec<Cow<'a, str>>,
+    pub runtimes: &'a [&'a str],
 }
 
 impl<'a> Request for WorkerRegisterRequest<'a> {

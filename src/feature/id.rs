@@ -1,32 +1,28 @@
 use std::borrow::Cow;
 
-#[derive(Debug, Clone, typed_builder::TypedBuilder)]
-pub struct Id {
-    pub id: Cow<'static, str>,
-}
+#[derive(Debug, Clone)]
+pub struct Id(Cow<'static, str>);
 
 impl Id {
     pub fn as_str(&self) -> &str {
-        &self.id
+        &self.0
     }
 }
 
 impl From<String> for Id {
     fn from(id: String) -> Self {
-        Id { id: Cow::Owned(id) }
+        Id(Cow::Owned(id))
     }
 }
 
 impl From<&'static str> for Id {
     fn from(id: &'static str) -> Self {
-        Id {
-            id: Cow::Borrowed(id),
-        }
+        Id(Cow::Borrowed(id))
     }
 }
 
 impl std::fmt::Display for Id {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.id)
+        write!(f, "{}", self.0)
     }
 }

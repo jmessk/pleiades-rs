@@ -2,20 +2,20 @@ use pleiades::{api, Client};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+    // env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
 
     // create arc client
     let client = Client::builder()
         // .host("https://pleiades.dolylab.cc/api/v0.5-snapshot/")
         // .host("http://192.168.168.127:8332/api/v0.5/")
         // .host("http://172.21.39.32:8332/api/v0.5/")
-        .host("http://pleiades.local:8332/api/v0.5/")
-        .build()
-        .unwrap();
+        // .host("http://pleiades.local:8332/api/v0.5/")
+        .host("http://master.local/api/v0.5/")
+        .build();
 
     let register = {
         let request = api::WorkerRegisterRequest::builder()
-            .runtimes(vec!["mecrm-rs+example".into()])
+            .runtimes(&["mecrm-rs+example"])
             .build();
 
         client.send(&request).await?

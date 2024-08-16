@@ -1,5 +1,6 @@
 use anyhow::Result;
 use bytes::Bytes;
+use std::sync::Arc;
 
 use crate::Id;
 use crate::{api, Client, Lambda, Runtime};
@@ -21,7 +22,9 @@ impl Blob {
         Ok(response.data)
     }
 
-    pub async fn into_lambda(self, runtime: Runtime) -> Result<Lambda> {
+    pub async fn into_lambda(self, runtime: impl Into<Runtime>) -> Result<Lambda> {
+        let runtime = runtime.into();
+
         let request = api::LambdaCreateRequest::builder()
             .runtime(runtime.as_str())
             .data_id(self.id.as_str())

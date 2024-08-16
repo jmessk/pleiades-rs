@@ -38,7 +38,7 @@ pub struct WorkerContractRequest<'a> {
 
     /// tags to associate with contracting a job
     #[builder(default)]
-    pub tags: Vec<Cow<'a, str>>,
+    pub tags: &'a [&'a str],
 
     /// timeout in seconds to wait for a job
     pub timeout: u32,

@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use crate::{api, blob::Blob, job::Job, Client, Id, Runtime};
 
 #[derive(Debug, Clone)]
@@ -14,13 +12,7 @@ impl Lambda {
     pub async fn invoke(
         &self,
         input: Blob,
-        // tags:
-        // T
-        // impl IntoIterator<Item = impl Into<Cow<'static, str>>>
     ) -> anyhow::Result<Job>
-// where
-    //     T: IntoIterator<Item = U>,
-    //     U: Into<Cow<'static, str>>,
     {
         let request = api::JobCreateRequest::builder()
             .lambda_id(self.id.as_str())

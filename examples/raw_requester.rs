@@ -10,8 +10,9 @@ async fn main() -> anyhow::Result<()> {
         // .host("https://pleiades.dolylab.cc/api/v0.5-snapshot/")
         // .host("http://192.168.168.127:8332/api/v0.5/")
         // .host("http://172.21.39.32:8332/api/v0.5/")
-        .host("http://pleiades.local:8332/api/v0.5/")
-        .build()?;
+        // .host("http://pleiades.local:8332/api/v0.5/")
+        .host("http://master.local/api/v0.5/")
+        .build();
 
     // blob as lambda code
     let code_blob = {

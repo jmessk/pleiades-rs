@@ -46,7 +46,9 @@ impl<'a> Request for LambdaCreateRequest<'a> {
 
         log::debug!("creating lambda: {:?}", self);
 
+        let start = std::time::Instant::now();
         let response = client.execute(request).await?;
+        println!("lambda created in {:?}", start.elapsed());
         LambdaCreateResponse::from_response(response).await
     }
 }

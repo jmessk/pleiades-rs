@@ -37,7 +37,7 @@ impl Request for DataUploadRequest {
         let endpoint = host.join(&self.endpoint()).unwrap();
 
         let form = {
-            let part = Part::bytes(self.data.to_vec());
+            let part = Part::bytes(self.data.to_vec()).file_name("data");
             Form::new().part("file", part)
         };
 
@@ -45,7 +45,9 @@ impl Request for DataUploadRequest {
 
         log::debug!("uploading data: {} bytes", self.data.len());
 
+        let start = std::time::Instant::now();
         let response = client.execute(request).await?;
+        println!("data uploaded in {:?}", start.elapsed());
         DataUploadResponse::from_response(response).await
     }
 }

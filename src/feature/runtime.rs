@@ -17,6 +17,7 @@ use std::borrow::Cow;
 //     features: Vec<Cow<'static, str>>,
 // }
 
+#[derive(Default)]
 pub struct RuntimeBuilder {
     base: Option<Cow<'static, str>>,
     features: Option<Vec<Cow<'static, str>>>,
@@ -24,10 +25,7 @@ pub struct RuntimeBuilder {
 
 impl RuntimeBuilder {
     pub fn new() -> Self {
-        Self {
-            base: None,
-            features: None,
-        }
+        Self::default()
     }
 
     pub fn base<T: Into<Cow<'static, str>>>(mut self, base: T) -> Self {
@@ -37,7 +35,7 @@ impl RuntimeBuilder {
 
     pub fn add_feature<T: Into<Cow<'static, str>>>(mut self, feature: T) -> Self {
         self.features
-            .get_or_insert_with(|| Vec::new())
+            .get_or_insert_with(Vec::new)
             .push(feature.into());
         self
     }
@@ -59,16 +57,24 @@ impl RuntimeBuilder {
 pub struct Runtime(Cow<'static, str>);
 
 impl Runtime {
-    pub fn new(name: impl Into<Cow<'static, str>>) -> Self {
-        Self(name.into())
-    }
-
     pub fn builder() -> RuntimeBuilder {
         RuntimeBuilder::new()
     }
 
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+}
+
+impl From<&'static str> for Runtime {
+    fn from(base: &'static str) -> Self {
+        Self(base.into())
+    }
+}
+
+impl From<String> for Runtime {
+    fn from(base: String) -> Self {
+        Self(base.into())
     }
 }
 
