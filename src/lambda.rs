@@ -1,5 +1,18 @@
 use crate::{api, blob::Blob, job::Job, Client, Id, Runtime};
 
+pub struct Selector {
+    pub(crate) client: Client,
+}
+
+impl Selector {
+    #[allow(clippy::wrong_self_convention)]
+    pub fn from_id(self, id: impl Into<Id>) -> Lambda {
+        let _ = id;
+        let _ = self.client;
+        todo!()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Lambda {
     pub(crate) client: Client,

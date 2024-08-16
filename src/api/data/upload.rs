@@ -45,9 +45,7 @@ impl Request for DataUploadRequest {
 
         log::debug!("uploading data: {} bytes", self.data.len());
 
-        let start = std::time::Instant::now();
         let response = client.execute(request).await?;
-        println!("data uploaded in {:?}", start.elapsed());
         DataUploadResponse::from_response(response).await
     }
 }

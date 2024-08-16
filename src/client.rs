@@ -1,8 +1,6 @@
-use anyhow::Result;
-use bytes::Bytes;
 use std::sync::Arc;
 
-use crate::{api, job::Job, Blob, Id, Lambda, Runtime, Worker};
+use crate::{api, blob, job, lambda, worker};
 
 #[derive(Debug, Clone, typed_builder::TypedBuilder)]
 pub struct Client {
@@ -30,40 +28,27 @@ impl Client {
         request.send(&self.client, &self.host).await
     }
 
-    pub async fn new_blob(&self, data: impl Into<Bytes>) -> Result<Blob> {
-        let request = api::DataUploadRequest { data: data.into() };
-        let response = self.send(&request).await?;
-
-        Ok(Blob {
+    pub fn blob(&self) -> blob::Selector {
+        blob::Selector {
             client: self.clone(),
-            id: response.data_id.into(),
-        })
-    }
-
-    pub fn blob_from_id(&self, id: impl Into<Id>) -> Blob {
-        Blob {
-            client: self.clone(),
-            id: id.into(),
         }
     }
 
-    pub async fn lambda_from_id(&self, id: impl Into<Id>) -> Result<Lambda> {
-        todo!()
+    pub fn lambda(&self) -> lambda::Selector {
+        lambda::Selector {
+            client: self.clone(),
+        }
     }
 
-    pub async fn job_from_id(&self, id: impl Into<Id>) -> Result<Job> {
-        todo!()
+    pub fn worker(&self) -> worker::Selector {
+        worker::Selector {
+            client: self.clone(),
+        }
     }
 
-    // pub async fn new_worker<T, U>(&self, runtimes: T) -> Result<Worker>
-    // where
-    //     T: IntoIterator<Item = U>,
-    //     U: Into<Runtime>,
-    // {
-    //     let request = api::WorkerRegisterRequest::builder()
-    //         .runtimes(runtimes)
-    //         .build();
-
-    //     todo!()
-    // }
+    pub fn job(&self) -> job::Selector {
+        job::Selector {
+            client: self.clone(),
+        }
+    }
 }

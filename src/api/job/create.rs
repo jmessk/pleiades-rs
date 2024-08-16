@@ -54,9 +54,7 @@ impl<'a> Request for JobCreateRequest<'a> {
 
         log::debug!("creating job: {:?}", self);
 
-        let start = std::time::Instant::now();
         let response = client.execute(request).await?;
-        println!("job created in {:?}", start.elapsed());
         JobCreateResponse::from_response(response).await
     }
 }

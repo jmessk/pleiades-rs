@@ -11,40 +11,26 @@ async fn main() -> anyhow::Result<()> {
     // create lambda
     let lambda = {
         // create lambda code as blob
-        let start = std::time::Instant::now();
-        let code = client.new_blob("example lambda").await?;
-        println!("1: {:?}", start.elapsed());
+        let code = client.blob().new("example lambda").await?;
 
         // create lambda from code blob
-        let start = std::time::Instant::now();
-        let a = code.into_lambda("mecrm-rs+example").await?;
-        println!("2: {:?}", start.elapsed());
-        a
+        code.into_lambda("mecrm-rs+example").await?
     };
-    // or
-    // let lambda = client.lambda_from_id("<lambda_id>").await?;
 
     // create input
-    let input = client.new_blob("example input").await?;
-    // or
-    // let input = client.blob_from_id("<data_id>");
+    let input = client.blob().new("example input").await?;
 
-    // let job = lambda
-    //     // run job
-    //     .invoke(input)
-    //     .await?
-    //     // wait job finished
-    //     .wait_finished(10)
-    //     .await?;
-    let start = std::time::Instant::now();
-    let job = lambda.invoke(input).await?;
-    println!("3: {:?}", start.elapsed());
-
-    let job = job.wait_finished(10).await?;
+    let job = lambda
+        // run job
+        .invoke(input)
+        .await?
+        // wait job finished
+        .wait_finished(10)
+        .await?;
 
     // get output
     let output = job.output.fetch().await?;
-    println!("{:?}", output);
+    println!("output: {:?}", output);
 
     Ok(())
 }

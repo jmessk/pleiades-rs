@@ -2,7 +2,7 @@ pub mod api;
 mod client;
 
 mod blob;
-pub mod job;
+mod job;
 mod lambda;
 mod worker;
 
@@ -10,7 +10,8 @@ mod feature;
 
 pub use blob::Blob;
 pub use client::Client;
+pub use job::{FinishedJob, Job, Status};
 pub use lambda::Lambda;
-pub use worker::Worker;
+pub use worker::{Contractor, Worker};
 
 pub use feature::{Id, Runtime};

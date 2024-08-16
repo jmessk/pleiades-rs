@@ -1,46 +1,49 @@
-use std::{borrow::Cow, default, sync::Arc};
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let client = pleiades::Client::builder()
+        // .host("https://pleiades.dolylab.cc/api/v0.5-snapshot/")
+        // .host("http://192.168.168.127:8332/api/v0.5/")
+        // .host("http://172.21.39.32:8332/api/v0.5/")
+        // .host("http://pleiades.local:8332/api/v0.5/")
+        .host("http://master.local/api/v0.5/")
+        .build();
 
-fn main() {
-    let start = std::time::Instant::now();
-    let s = "asdfasdf".to_string();
-    println!("1: {:?}", start.elapsed());
+    // create worker
+    let worker = client.worker().new(&["mecrm-rs+example".into()]).await?;
 
-    let start = std::time::Instant::now();
-    let _ = s.clone();
-    println!("2: {:?}", start.elapsed());
+    // create contractor
+    let contractor = worker.contractor();
 
-    let s = Arc::new("asdfasdf".to_string());
-    let start = std::time::Instant::now();
-    let _ = s.clone();
-    println!("3: {:?}", start.elapsed());
+    // wait for job
+    println!("waiting for job");
+    println!("timeout: 10s");
 
-    let s = Cow::Borrowed("asdfasdf");
-    let start = std::time::Instant::now();
-    let _ = s.clone();
-    println!("4: {:?}", start.elapsed());
+    while let Some(job) = contractor.contract(10, &[]).await? {
+        println!("contracted job");
+        let client = client.clone();
 
-    let s: Cow<str> = Cow::Owned("asdfasdf".to_string());
-    let start = std::time::Instant::now();
-    let _ = s.clone();
-    println!("5: {:?}", start.elapsed());
+        tokio::spawn(async move {
+            execute(&client, job).await.unwrap();
+        });
+    }
 
-    let s = Cow::Borrowed("asdfasdf");
-    let start = std::time::Instant::now();
-    let s = Arc::new(s);
-    println!("6: {:?}", start.elapsed());
+    println!("No more job");
+    Ok(())
+}
 
-    let start = std::time::Instant::now();
-    let _ = s.clone();
-    println!("7: {:?}", start.elapsed());
+async fn execute(client: &pleiades::Client, job: pleiades::Job) -> anyhow::Result<()> {
+    // get input
+    let input = job.input.fetch().await?;
 
-    let s: Cow<str> = Cow::Owned("asdfasdf".to_string());
-    let s = Arc::new(s);
-    let start = std::time::Instant::now();
-    let _ = s.clone();
-    println!("8: {:?}", start.elapsed());
+    // do something
+    println!("input: {:?}", input);
 
-    let s = "asdfasdf";
-    let start = std::time::Instant::now();
-    let _ = s.clone();
-    println!("9: {:?}", start.elapsed());
+    // create output
+    let output = client.blob().new("example output").await?;
+
+    // finish job
+    job.finish(output).await?;
+    println!("finished job");
+
+    Ok(())
 }
