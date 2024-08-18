@@ -5,6 +5,7 @@ mod blob;
 mod job;
 mod lambda;
 mod worker;
+mod kv;
 
 mod feature;
 

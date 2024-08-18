@@ -61,8 +61,8 @@ impl Response for DataDownloadResponse {
         let content_type = response.headers().get("content-type");
 
         if content_type.is_none() {
-            let error = response.text().await?;
-            tracing::error!("failed to download data: {}", error);
+            let error = response.bytes().await?;
+            tracing::error!("failed to download data: {:?}", error);
 
             return Err(Error::Other(anyhow::anyhow!("failed to read content type")));
         }
@@ -76,22 +76,21 @@ impl Response for DataDownloadResponse {
                 Ok(DataDownloadResponse { data })
             }
 
-            // application/json is the error message
-            "application/json" => match response.json::<ErrorResponse>().await {
-                Ok(response) => {
-                    tracing::error!("failed to download data: {:?}", response);
-                    Err(Error::Response(response))
+            "application/json" => {
+                let body = response.text().await?;
+                tracing::error!("failed to download data: {}", body);
+                let json = serde_json::from_str::<ErrorResponse>(&body);
+
+                match json {
+                    Ok(response) => Err(Error::Response(response)),
+                    Err(e) => Err(Error::Parse(e)),
                 }
-                Err(e) => {
-                    tracing::error!("failed to download data: {}", e);
-                    Err(Error::Request(e))
-                }
-            },
+            }
 
             // other content types are not supported
             _ => {
-                let error = response.text().await?;
-                tracing::error!("failed to download data: {}", error);
+                let error = response.bytes().await?;
+                tracing::error!("failed to download data: {:?}", error);
 
                 Err(Error::Other(anyhow::anyhow!("failed to download data")))
             }

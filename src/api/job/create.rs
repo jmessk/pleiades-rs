@@ -50,7 +50,7 @@ impl<'a> Request for JobCreateRequest<'a> {
 
     async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<JobCreateResponse> {
         let endpoint = host.join(&self.endpoint()).unwrap();
-        let request = client.post(endpoint).json(&self).build()?;
+        let request = client.post(endpoint).json(self).build()?;
 
         tracing::debug!("creating job: {:?}", self);
 
@@ -81,13 +81,14 @@ impl Response for JobCreateResponse {
                 tracing::debug!("job created: {:?}", response);
                 Ok(response)
             }
-            Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
-                Ok(response) => {
-                    tracing::error!("failed to create job: {:?}", response);
-                    Err(Error::Response(response))
+            Err(_) => {
+                tracing::error!("failed to create job: {}", body);
+
+                match serde_json::from_str::<ErrorResponse>(&body) {
+                    Ok(response) => Err(Error::Response(response)),
+                    Err(e) => Err(Error::Parse(e)),
                 }
-                Err(e) => Err(Error::Parse(e)),
-            },
+            }
         }
     }
 }

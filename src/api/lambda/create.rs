@@ -42,7 +42,7 @@ impl<'a> Request for LambdaCreateRequest<'a> {
         host: &url::Url,
     ) -> Result<LambdaCreateResponse> {
         let endpoint = host.join(&self.endpoint()).unwrap();
-        let request = client.post(endpoint).json(&self).build()?;
+        let request = client.post(endpoint).json(self).build()?;
 
         tracing::debug!("creating lambda: {:?}", self);
 
@@ -73,13 +73,14 @@ impl Response for LambdaCreateResponse {
                 tracing::debug!("lambda created: {}", body);
                 Ok(response)
             }
-            Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
-                Ok(response) => {
-                    tracing::error!("failed to create lambda: {:?}", response);
-                    Err(Error::Response(response))
+            Err(_) => {
+                tracing::error!("failed to create lambda: {}", body);
+
+                match serde_json::from_str::<ErrorResponse>(&body) {
+                    Ok(response) => Err(Error::Response(response)),
+                    Err(e) => Err(Error::Parse(e)),
                 }
-                Err(e) => Err(Error::Parse(e)),
-            },
+            }
         }
     }
 }

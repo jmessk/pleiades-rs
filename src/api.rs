@@ -1,7 +1,7 @@
 mod data;
 mod error;
 mod job;
-mod kv;
+pub mod kv;
 mod lambda;
 mod worker;
 

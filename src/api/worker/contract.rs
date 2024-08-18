@@ -57,7 +57,7 @@ impl<'a> Request for WorkerContractRequest<'a> {
         host: &url::Url,
     ) -> Result<WorkerContractResponse> {
         let endpoint = host.join(&self.endpoint()).unwrap();
-        let request = client.post(endpoint).json(&self).build()?;
+        let request = client.post(endpoint).json(self).build()?;
 
         tracing::debug!("contracting worker: {:?}", self);
 
@@ -95,13 +95,14 @@ impl Response for WorkerContractResponse {
                     Ok(response)
                 }
             },
-            Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
-                Ok(response) => {
-                    tracing::error!("failed to contract job: {:?}", response);
-                    Err(Error::Response(response))
+            Err(_) => {
+                tracing::error!("failed to contract job: {}", body);
+
+                match serde_json::from_str::<ErrorResponse>(&body) {
+                    Ok(response) => Err(Error::Response(response)),
+                    Err(e) => Err(Error::Parse(e)),
                 }
-                Err(e) => Err(Error::Parse(e)),
-            },
+            }
         }
     }
 }

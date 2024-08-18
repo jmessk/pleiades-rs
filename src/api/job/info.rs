@@ -139,13 +139,14 @@ impl Response for JobInfoResponse {
                 tracing::debug!("job info fetched: {}", body);
                 Ok(response)
             }
-            Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
-                Ok(response) => {
-                    tracing::error!("failed to fetch job info: {:?}", response);
-                    Err(Error::Response(response))
+            Err(_) => {
+                tracing::error!("failed to fetch job info: {}", body);
+
+                match serde_json::from_str::<ErrorResponse>(&body) {
+                    Ok(response) => Err(Error::Response(response)),
+                    Err(e) => Err(Error::Parse(e)),
                 }
-                Err(e) => Err(Error::Parse(e)),
-            },
+            }
         }
     }
 }
