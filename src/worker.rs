@@ -25,7 +25,7 @@ impl Selector {
     }
 
     // #[allow(clippy::wrong_self_convention)]
-    // pub fn from_id(self, id: impl Into<Id>) -> anyhow::Result<Worker> {
+    // pub async fn from_id(self, id: impl Into<Id>) -> anyhow::Result<Worker> {
     //     todo!()
     // }
 }

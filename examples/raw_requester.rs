@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
         let request = api::DataUploadRequest::builder()
             .data(
                 r#"
-                console.log("hello world");
+                console.tracing("hello world");
             "#,
             )
             .build();

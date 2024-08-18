@@ -37,7 +37,7 @@ impl<'a> Request for WorkerRegisterRequest<'a> {
         let endpoint = host.join(&self.endpoint()).unwrap();
         let request = client.post(endpoint).json(&self).build()?;
 
-        log::debug!("registering worker: {:?}", self);
+        tracing::debug!("registering worker: {:?}", self);
 
         let response = client.execute(request).await?;
         WorkerRegisterResponse::from_response(response).await
@@ -67,14 +67,12 @@ impl Response for WorkerRegisterResponse {
 
         match serde_json::from_str::<WorkerRegisterResponse>(&body) {
             Ok(response) => {
-                log::info!("worker registered");
-                log::debug!("worker registered: {}", body);
-
+                tracing::debug!("worker registered: {}", body);
                 Ok(response)
             }
             Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
                 Ok(response) => {
-                    log::error!("failed to register worker: {:?}", response);
+                    tracing::error!("failed to register worker: {:?}", response);
                     Err(Error::Response(response))
                 }
                 Err(e) => Err(Error::Parse(e)),

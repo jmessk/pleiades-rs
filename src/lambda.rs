@@ -6,7 +6,7 @@ pub struct Selector {
 
 impl Selector {
     #[allow(clippy::wrong_self_convention)]
-    pub fn from_id(self, id: impl Into<Id>) -> Lambda {
+    pub async fn from_id(self, id: impl Into<Id>) -> anyhow::Result<Lambda> {
         let _ = id;
         let _ = self.client;
         todo!()
@@ -22,11 +22,7 @@ pub struct Lambda {
 }
 
 impl Lambda {
-    pub async fn invoke(
-        &self,
-        input: Blob,
-    ) -> anyhow::Result<Job>
-    {
+    pub async fn invoke(&self, input: Blob) -> anyhow::Result<Job> {
         let request = api::JobCreateRequest::builder()
             .lambda_id(self.id.as_str())
             .data_id(input.id.as_str())

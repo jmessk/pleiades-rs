@@ -58,7 +58,7 @@ impl<'a> Request for JobInfoRequest<'a> {
             None => client.get(endpoint).build()?,
         };
 
-        log::debug!("getting job info: {:?}", self);
+        tracing::debug!("getting job info: {:?}", self);
 
         let response = client.execute(request).await?;
         JobInfoResponse::from_response(response).await
@@ -136,14 +136,12 @@ impl Response for JobInfoResponse {
 
         match serde_json::from_str::<JobInfoResponse>(&body) {
             Ok(response) => {
-                log::info!("job info fetched");
-                log::debug!("job info fetched: {}", body);
-
+                tracing::debug!("job info fetched: {}", body);
                 Ok(response)
             }
             Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
                 Ok(response) => {
-                    log::error!("failed to fetch job info: {:?}", response);
+                    tracing::error!("failed to fetch job info: {:?}", response);
                     Err(Error::Response(response))
                 }
                 Err(e) => Err(Error::Parse(e)),

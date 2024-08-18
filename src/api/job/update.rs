@@ -45,7 +45,7 @@ impl<'a> Request for JobUpdateRequest<'a> {
         let endpoint = host.join(&self.endpoint()).unwrap();
         let request = client.post(endpoint).json(&self).build()?;
 
-        log::debug!("updating job: {:?}", self);
+        tracing::debug!("updating job: {:?}", self);
 
         let response = client.execute(request).await?;
         JobUpdateResponse::from_response(response).await
@@ -68,14 +68,12 @@ impl Response for JobUpdateResponse {
 
         match serde_json::from_str::<JobUpdateResponse>(&body) {
             Ok(response) => {
-                log::info!("job status updated");
-                log::debug!("job status updated: {}", body);
-
+                tracing::debug!("job status updated: {}", body);
                 Ok(response)
             }
             Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
                 Ok(response) => {
-                    log::error!("failed to update job status: {:?}", response);
+                    tracing::error!("failed to update job status: {:?}", response);
                     Err(Error::Response(response))
                 }
                 Err(e) => Err(Error::Parse(e)),

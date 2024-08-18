@@ -59,7 +59,7 @@ impl<'a> Request for WorkerContractRequest<'a> {
         let endpoint = host.join(&self.endpoint()).unwrap();
         let request = client.post(endpoint).json(&self).build()?;
 
-        log::debug!("contracting worker: {:?}", self);
+        tracing::debug!("contracting worker: {:?}", self);
 
         let response = client.execute(request).await?;
         WorkerContractResponse::from_response(response).await
@@ -86,21 +86,18 @@ impl Response for WorkerContractResponse {
         match serde_json::from_str::<WorkerContractResponse>(&body) {
             Ok(response) => match &response.job_id {
                 Some(_) => {
-                    log::info!("job contracted");
-                    log::debug!("job contracted: {}", body);
-
+                    tracing::debug!("job contracted: {}", body);
                     Ok(response)
                 }
                 None => {
-                    log::info!("worker contracted no job");
-                    log::debug!("worker contracted no job: {}", body);
+                    tracing::debug!("worker contracted no job: {}", body);
 
                     Ok(response)
                 }
             },
             Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
                 Ok(response) => {
-                    log::error!("failed to contract job: {:?}", response);
+                    tracing::error!("failed to contract job: {:?}", response);
                     Err(Error::Response(response))
                 }
                 Err(e) => Err(Error::Parse(e)),

@@ -21,11 +21,11 @@ impl Selector {
     }
 
     #[allow(clippy::wrong_self_convention)]
-    pub fn from_id(self, id: impl Into<Id>) -> Blob {
-        Blob {
+    pub async fn from_id(self, id: impl Into<Id>) -> anyhow::Result<Blob> {
+        Ok(Blob {
             client: self.client,
             id: id.into(),
-        }
+        })
     }
 }
 

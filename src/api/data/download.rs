@@ -40,7 +40,7 @@ impl<'a> Request for DataDownloadRequest<'a> {
         let endpoint = host.join(&self.endpoint()).unwrap();
         let request = client.get(endpoint).build()?;
 
-        log::debug!("downloading data: {:?}", self.data_id);
+        tracing::debug!("downloading data: {:?}", self.data_id);
 
         let response = client.execute(request).await?;
         DataDownloadResponse::from_response(response).await
@@ -62,7 +62,7 @@ impl Response for DataDownloadResponse {
 
         if content_type.is_none() {
             let error = response.text().await?;
-            log::error!("failed to download data: {}", error);
+            tracing::error!("failed to download data: {}", error);
 
             return Err(Error::Other(anyhow::anyhow!("failed to read content type")));
         }
@@ -71,9 +71,7 @@ impl Response for DataDownloadResponse {
             // application/octet-stream is the blob data
             "application/octet-stream" => {
                 let data = response.bytes().await?;
-
-                log::info!("data downloaded");
-                log::debug!("downloaded {} bytes", data.len());
+                tracing::debug!("downloaded {} bytes", data.len());
 
                 Ok(DataDownloadResponse { data })
             }
@@ -81,11 +79,11 @@ impl Response for DataDownloadResponse {
             // application/json is the error message
             "application/json" => match response.json::<ErrorResponse>().await {
                 Ok(response) => {
-                    log::error!("failed to download data: {}", response);
+                    tracing::error!("failed to download data: {:?}", response);
                     Err(Error::Response(response))
                 }
                 Err(e) => {
-                    log::error!("failed to download data: {}", e);
+                    tracing::error!("failed to download data: {}", e);
                     Err(Error::Request(e))
                 }
             },
@@ -93,7 +91,7 @@ impl Response for DataDownloadResponse {
             // other content types are not supported
             _ => {
                 let error = response.text().await?;
-                log::error!("failed to download data: {}", error);
+                tracing::error!("failed to download data: {}", error);
 
                 Err(Error::Other(anyhow::anyhow!("failed to download data")))
             }

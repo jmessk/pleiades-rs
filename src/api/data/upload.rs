@@ -43,7 +43,7 @@ impl Request for DataUploadRequest {
 
         let request = client.post(endpoint).multipart(form).build()?;
 
-        log::debug!("uploading data: {} bytes", self.data.len());
+        tracing::debug!("uploading data: {} bytes", self.data.len());
 
         let response = client.execute(request).await?;
         DataUploadResponse::from_response(response).await
@@ -70,14 +70,14 @@ impl Response for DataUploadResponse {
 
         match serde_json::from_str::<DataUploadResponse>(&body) {
             Ok(response) => {
-                log::info!("data uploaded");
-                log::debug!("data uploaded: {:?}", response);
+                tracing::info!("data uploaded");
+                tracing::debug!("data uploaded: {:?}", response);
 
                 Ok(response)
             }
             Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
                 Ok(response) => {
-                    log::error!("failed to upload data: {:?}", response);
+                    tracing::error!("failed to upload data: {:?}", response);
                     Err(Error::Response(response))
                 }
                 Err(e) => Err(Error::Parse(e)),

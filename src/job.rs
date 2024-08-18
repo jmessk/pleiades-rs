@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::{api, blob::Blob, Client, Id, Lambda};
 
 pub struct Selector {
@@ -21,10 +23,10 @@ impl Selector {
             client: self.client.clone(),
             id: info.lambda.lambda_id.into(),
             runtime: info.lambda.runtime.into(),
-            blob: self.client.blob().from_id(info.lambda.data_id),
+            blob: self.client.blob().from_id(info.lambda.data_id).await?,
         };
 
-        let input = self.client.blob().from_id(info.input.data_id);
+        let input = self.client.blob().from_id(info.input.data_id).await?;
 
         Ok(Job {
             client: self.client,
@@ -93,11 +95,11 @@ impl Job {
     //     todo!()
     // }
 
-    pub async fn wait_finished(&self, timeout: u32) -> anyhow::Result<FinishedJob> {
+    pub async fn wait_finished(&self, timeout: Duration) -> anyhow::Result<FinishedJob> {
         let request = api::JobInfoRequest::builder()
             .job_id(self.id.as_str())
             .except("Finished")
-            .timeout(timeout)
+            .timeout(timeout.as_secs() as u32)
             .build();
 
         let response = self.client.send(&request).await?;

@@ -52,7 +52,7 @@ impl<'a> Request for JobCreateRequest<'a> {
         let endpoint = host.join(&self.endpoint()).unwrap();
         let request = client.post(endpoint).json(&self).build()?;
 
-        log::debug!("creating job: {:?}", self);
+        tracing::debug!("creating job: {:?}", self);
 
         let response = client.execute(request).await?;
         JobCreateResponse::from_response(response).await
@@ -78,14 +78,12 @@ impl Response for JobCreateResponse {
 
         match serde_json::from_str::<JobCreateResponse>(&body) {
             Ok(response) => {
-                log::info!("job created");
-                log::debug!("job created: {:?}", response);
-
+                tracing::debug!("job created: {:?}", response);
                 Ok(response)
             }
             Err(_) => match serde_json::from_str::<ErrorResponse>(&body) {
                 Ok(response) => {
-                    log::error!("failed to create job: {:?}", response);
+                    tracing::error!("failed to create job: {:?}", response);
                     Err(Error::Response(response))
                 }
                 Err(e) => Err(Error::Parse(e)),

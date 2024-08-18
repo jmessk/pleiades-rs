@@ -23,7 +23,7 @@ impl std::fmt::Display for ErrorResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,
-            "code: {}, status: {}, message: {}",
+            "{{code: {}, status: {}, message: {}}}",
             self.code, self.status, self.message
         )
     }

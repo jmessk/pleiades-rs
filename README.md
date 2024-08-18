@@ -4,7 +4,7 @@ MEC-RM client library for Rust.
 
 ## Usage
 
-## Requester
+### Requester
 
 Refer to [simple_requester.rs](./examples/simple_requester.rs).
 
