@@ -1,4 +1,3 @@
-use anyhow::Result;
 use bytes::Bytes;
 
 use crate::Id;
@@ -36,7 +35,7 @@ pub struct Blob {
 }
 
 impl Blob {
-    pub async fn fetch(&self) -> Result<Bytes> {
+    pub async fn fetch(&self) -> anyhow::Result<Bytes> {
         let request = api::DataDownloadRequest::builder()
             .data_id(self.id.as_str())
             .build();
@@ -46,7 +45,7 @@ impl Blob {
         Ok(response.data)
     }
 
-    pub async fn into_lambda(self, runtime: impl Into<Runtime>) -> Result<Lambda> {
+    pub async fn into_lambda(self, runtime: impl Into<Runtime>) -> anyhow::Result<Lambda> {
         let runtime = runtime.into();
 
         let request = api::LambdaCreateRequest::builder()
