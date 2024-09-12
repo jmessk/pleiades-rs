@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{default, sync::Arc};
 
 use crate::{api, blob, job, lambda, worker};
 
@@ -9,6 +9,21 @@ pub struct Client {
 
     #[builder(setter(transform = |url: impl reqwest::IntoUrl| Arc::new(url.into_url().expect("invalid host"))))]
     host: Arc<url::Url>,
+}
+
+// pub struct client {
+//     client: reqwest::Client,
+//     host: url::Url,
+//     version: &'static str,
+// }
+
+impl default::Default for Client {
+    fn default() -> Self {
+        Self {
+            client: reqwest::Client::new(),
+            host: Arc::new(url::Url::parse("http://pleiades.local/api/v0.5/").unwrap()),
+        }
+    }
 }
 
 impl Client {

@@ -1,16 +1,8 @@
+use pleiades::Client;
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt::fmt()
-        .with_max_level(tracing::Level::ERROR)
-        .init();
-
-    let client = pleiades::Client::builder()
-        // .host("https://pleiades.dolylab.cc/api/v0.5-snapshot/")
-        // .host("http://192.168.168.127:8332/api/v0.5/")
-        // .host("http://172.21.39.32:8332/api/v0.5/")
-        // .host("http://pleiades.local:8332/api/v0.5/")
-        .host("http://master.local/api/v0.5/")
-        .build();
+    let client = init();
 
     // create worker
     let worker = client.worker().new(&["mecrm-rs+example".into()]).await?;
@@ -50,4 +42,14 @@ async fn execute(client: &pleiades::Client, job: pleiades::Job) -> anyhow::Resul
     println!("finished job");
 
     Ok(())
+}
+
+fn init() -> Client {
+    tracing_subscriber::fmt::fmt()
+        .with_max_level(tracing::Level::ERROR)
+        .init();
+
+    Client::builder()
+        .host("http://pleiades.local/api/v0.5/")
+        .build()
 }
