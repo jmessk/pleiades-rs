@@ -13,8 +13,8 @@ async fn main() -> anyhow::Result<()> {
 
     // process using MEC-RM
     let lambda = create_lambda(&client).await?;
-    let output = execute(&client, lambda).await?;
-
+    let output = execute(&client, &lambda).await?;
+    
     println!("output: {:?}", output);
 
     Ok(())
@@ -32,7 +32,7 @@ async fn create_lambda(client: &Client) -> anyhow::Result<Lambda> {
     Ok(lambda)
 }
 
-async fn execute(client: &Client, lambda: Lambda) -> anyhow::Result<bytes::Bytes> {
+async fn execute(client: &Client, lambda: &Lambda) -> anyhow::Result<bytes::Bytes> {
     // create input
     let input = client.blob().new(r#"{ "a": 3,"b": 5 }"#).await?;
 
