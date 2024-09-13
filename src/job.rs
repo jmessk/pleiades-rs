@@ -23,7 +23,7 @@ impl Selector {
             client: self.client.clone(),
             id: info.lambda.lambda_id.into(),
             runtime: info.lambda.runtime.into(),
-            blob: self.client.blob().from_id(info.lambda.data_id).await?,
+            code: self.client.blob().from_id(info.lambda.data_id).await?,
         };
 
         let input = self.client.blob().from_id(info.input.data_id).await?;

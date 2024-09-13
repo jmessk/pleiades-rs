@@ -36,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
 
 async fn execute(client: &Client, job: Job) -> anyhow::Result<()> {
     // get input
-    let _code = job.lambda.blob.fetch().await?;
+    let _code = job.lambda.code.fetch().await?;
     let input = job.input.fetch().await?;
 
     // process input

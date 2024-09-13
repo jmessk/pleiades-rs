@@ -24,7 +24,7 @@ pub struct Lambda {
     pub(crate) client: Client,
     pub id: Id,
     pub runtime: Runtime,
-    pub blob: Blob,
+    pub code: Blob,
 }
 
 impl Lambda {

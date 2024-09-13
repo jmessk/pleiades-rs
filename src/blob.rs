@@ -63,7 +63,7 @@ impl Blob {
             client: self.client.clone(),
             id: response.lambda_id.into(),
             runtime,
-            blob: self,
+            code: self,
         })
     }
 }
