@@ -30,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
         });
     }
 
-    println!("No more job");
+    println!("no more job");
     Ok(())
 }
 
