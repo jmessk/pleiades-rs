@@ -41,7 +41,7 @@ pub struct WorkerContractRequest<'a> {
     pub tags: &'a [&'a str],
 
     /// timeout in seconds to wait for a job
-    pub timeout: u32,
+    pub timeout: u64,
 }
 
 impl<'a> Request for WorkerContractRequest<'a> {

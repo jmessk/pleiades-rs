@@ -36,7 +36,7 @@ pub struct JobInfoRequest<'a> {
 
     /// job info request timeout. use with except
     #[builder(default, setter(strip_option))]
-    pub timeout: Option<u32>,
+    pub timeout: Option<u64>,
 }
 
 impl<'a> Request for JobInfoRequest<'a> {

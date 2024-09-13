@@ -4,23 +4,18 @@ use pleiades::Client;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+        .with_max_level(tracing::Level::ERROR)
         .init();
 
-    // create arc client
     let client = Client::builder()
-        // .host("https://pleiades.dolylab.cc/api/v0.5-snapshot/")
-        // .host("http://192.168.168.127:8332/api/v0.5/")
-        // .host("http://172.21.39.32:8332/api/v0.5/")
-        // .host("http://pleiades.local:8332/api/v0.5/")
-        .host("http://master.local/api/v0.5/")
+        .host("http://pleiades.local/api/v0.5/")
         .build();
 
     let namespace = {
         let request = api::kv::namespace::Create::builder()
             .consistency("none")
             .build();
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     let _set = {
@@ -32,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
             .append()
             .build();
 
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     let get = {
@@ -41,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
             .key("example_key")
             .build();
 
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     println!("get: {}", get.value);

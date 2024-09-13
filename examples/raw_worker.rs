@@ -6,13 +6,8 @@ async fn main() -> anyhow::Result<()> {
         .with_max_level(tracing::Level::ERROR)
         .init();
 
-    // create arc client
     let client = Client::builder()
-        // .host("https://pleiades.dolylab.cc/api/v0.5-snapshot/")
-        // .host("http://192.168.168.127:8332/api/v0.5/")
-        // .host("http://172.21.39.32:8332/api/v0.5/")
-        // .host("http://pleiades.local:8332/api/v0.5/")
-        .host("http://master.local/api/v0.5/")
+        .host("http://pleiades.local/api/v0.5/")
         .build();
 
     let register = {
@@ -20,7 +15,7 @@ async fn main() -> anyhow::Result<()> {
             .runtimes(&["mecrm-rs+example"])
             .build();
 
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     let contract = api::WorkerContractRequest::builder()
@@ -28,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
         .timeout(10)
         .build();
 
-    while let Some(job_id) = client.send(&contract).await?.job_id {
+    while let Some(job_id) = client.call_api(&contract).await?.job_id {
         let client = client.clone();
         tokio::spawn(async move { worker(client.clone(), job_id).await.unwrap() });
     }
@@ -41,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
 async fn worker(client: Client, job_id: String) -> anyhow::Result<()> {
     let job_info = {
         let request = api::JobInfoRequest::builder().job_id(&job_id).build();
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     let _input = {
@@ -49,7 +44,7 @@ async fn worker(client: Client, job_id: String) -> anyhow::Result<()> {
             .data_id(job_info.input.data_id)
             .build();
 
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     let output = {
@@ -57,7 +52,7 @@ async fn worker(client: Client, job_id: String) -> anyhow::Result<()> {
             .data("example output")
             .build();
 
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     let _update = {
@@ -67,7 +62,7 @@ async fn worker(client: Client, job_id: String) -> anyhow::Result<()> {
             .status("finished")
             .build();
 
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     println!("Job {} finished", job_id);

@@ -1,8 +1,16 @@
-use pleiades::Client;
+use std::time::Duration;
+
+use pleiades::{Client, Job};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let client = init();
+    tracing_subscriber::fmt::fmt()
+        .with_max_level(tracing::Level::ERROR)
+        .init();
+
+    let client = Client::builder()
+        .host("http://pleiades.local/api/v0.5/")
+        .build();
 
     // create worker
     let worker = client.worker().new(&["mecrm-rs+example".into()]).await?;
@@ -11,15 +19,14 @@ async fn main() -> anyhow::Result<()> {
     let contractor = worker.contractor();
 
     // wait for job
-    println!("waiting for job");
-    println!("timeout: 10s");
+    println!("waiting for job. timeout: 10s");
 
-    while let Some(job) = contractor.contract(10, &[]).await? {
-        println!("contracted job");
+    while let Some(job) = contractor.contract(Duration::from_secs(10), &[]).await? {
         let client = client.clone();
 
         tokio::spawn(async move {
             execute(&client, job).await.unwrap();
+            println!("finished job");
         });
     }
 
@@ -27,29 +34,19 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn execute(client: &pleiades::Client, job: pleiades::Job) -> anyhow::Result<()> {
+async fn execute(client: &Client, job: Job) -> anyhow::Result<()> {
     // get input
+    let _code = job.lambda.blob.fetch().await?;
     let input = job.input.fetch().await?;
 
-    // do something
+    // process input
     println!("input: {:?}", input);
 
     // create output
-    let output = client.blob().new("example output").await?;
+    let output = client.blob().new(r#"{ "output": 8 }"#).await?;
 
     // finish job
     job.finish(output).await?;
-    println!("finished job");
 
     Ok(())
-}
-
-fn init() -> Client {
-    tracing_subscriber::fmt::fmt()
-        .with_max_level(tracing::Level::ERROR)
-        .init();
-
-    Client::builder()
-        .host("http://pleiades.local/api/v0.5/")
-        .build()
 }

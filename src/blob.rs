@@ -1,7 +1,11 @@
 use bytes::Bytes;
 
-use crate::Id;
-use crate::{api, Client, Lambda, Runtime};
+use crate::{
+    api,
+    client::Client,
+    feature::{id::Id, runtime::Runtime},
+    lambda::Lambda,
+};
 
 pub struct Selector {
     pub(crate) client: Client,
@@ -11,7 +15,7 @@ impl Selector {
     #[allow(clippy::new_ret_no_self, clippy::wrong_self_convention)]
     pub async fn new(self, data: impl Into<Bytes>) -> anyhow::Result<Blob> {
         let request = api::DataUploadRequest { data: data.into() };
-        let response = self.client.send(&request).await?;
+        let response = self.client.call_api(&request).await?;
 
         Ok(Blob {
             client: self.client,
@@ -40,7 +44,7 @@ impl Blob {
             .data_id(self.id.as_str())
             .build();
 
-        let response = self.client.send(&request).await?;
+        let response = self.client.call_api(&request).await?;
 
         Ok(response.data)
     }
@@ -53,7 +57,7 @@ impl Blob {
             .data_id(self.id.as_str())
             .build();
 
-        let response = self.client.send(&request).await?;
+        let response = self.client.call_api(&request).await?;
 
         Ok(crate::Lambda {
             client: self.client.clone(),

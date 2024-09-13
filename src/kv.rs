@@ -1,7 +1,7 @@
-use std::borrow::Cow;
 use bytes::Bytes;
+use std::borrow::Cow;
 
-use crate::{Client, Id};
+use crate::{client::Client, feature::id::Id};
 
 pub struct Selector {
     pub(crate) client: Client,

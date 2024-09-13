@@ -7,13 +7,8 @@ async fn main() -> anyhow::Result<()> {
         .with_max_level(tracing::Level::ERROR)
         .init();
 
-    // create arc client
     let client = Client::builder()
-        // .host("https://pleiades.dolylab.cc/api/v0.5-snapshot/")
-        // .host("http://192.168.168.127:8332/api/v0.5/")
-        // .host("http://172.21.39.32:8332/api/v0.5/")
-        // .host("http://pleiades.local:8332/api/v0.5/")
-        .host("http://master.local/api/v0.5/")
+        .host("http://pleiades.local/api/v0.5/")
         .build();
 
     // blob as lambda code
@@ -26,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
             )
             .build();
 
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     // lambda
@@ -36,7 +31,7 @@ async fn main() -> anyhow::Result<()> {
             .runtime("mecrm-rs+example")
             .build();
 
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     // input blob
@@ -45,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
             .data("example input")
             .build();
 
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     // create job
@@ -55,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
             .data_id(input.data_id)
             .build();
 
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     // wait for finish
@@ -66,7 +61,7 @@ async fn main() -> anyhow::Result<()> {
             .timeout(10)
             .build();
 
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     // download output
@@ -75,7 +70,7 @@ async fn main() -> anyhow::Result<()> {
             .data_id(job_info.output.unwrap().data_id)
             .build();
 
-        client.send(&request).await?
+        client.call_api(&request).await?
     };
 
     Ok(())

@@ -1,4 +1,10 @@
-use crate::{api, blob::Blob, job::Job, Client, Id, Runtime};
+use crate::{
+    api,
+    blob::Blob,
+    client::Client,
+    feature::{id::Id, runtime::Runtime},
+    job::Job,
+};
 
 pub struct Selector {
     pub(crate) client: Client,
@@ -28,7 +34,7 @@ impl Lambda {
             .data_id(input.id.as_str())
             .build();
 
-        let response = self.client.send(&request).await?;
+        let response = self.client.call_api(&request).await?;
 
         Ok(Job {
             client: self.client.clone(),

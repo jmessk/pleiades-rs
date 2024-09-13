@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::{api, blob::Blob, Client, Id, Lambda};
+use crate::{api, blob::Blob, client::Client, feature::id::Id, lambda::Lambda};
 
 pub struct Selector {
     pub(crate) client: Client,
@@ -16,7 +16,7 @@ impl Selector {
                 .job_id(job_id.as_str())
                 .build();
 
-            self.client.send(&request).await?
+            self.client.call_api(&request).await?
         };
 
         let lambda = Lambda {
@@ -86,7 +86,7 @@ impl Job {
             .job_id(self.id.as_str())
             .build();
 
-        let response = self.client.send(&request).await?;
+        let response = self.client.call_api(&request).await?;
 
         Ok(self.convert(response))
     }
@@ -99,10 +99,10 @@ impl Job {
         let request = api::JobInfoRequest::builder()
             .job_id(self.id.as_str())
             .except("Finished")
-            .timeout(timeout.as_secs() as u32)
+            .timeout(timeout.as_secs())
             .build();
 
-        let response = self.client.send(&request).await?;
+        let response = self.client.call_api(&request).await?;
 
         match self.convert(response) {
             Status::Finished(job) => Ok(job),
@@ -122,7 +122,7 @@ impl Job {
                 .data_id(output.id.as_str())
                 .build();
 
-            self.client.send(&request).await?
+            self.client.call_api(&request).await?
         };
 
         Ok(FinishedJob {

@@ -1,4 +1,11 @@
-use crate::{api, client::Client, job::Job, Id, Runtime};
+use std::time::Duration;
+
+use crate::{
+    api,
+    client::Client,
+    feature::{id::Id, runtime::Runtime},
+    job::Job,
+};
 
 pub struct Selector {
     pub(crate) client: Client,
@@ -14,7 +21,7 @@ impl Selector {
                 .runtimes(&runtimes)
                 .build();
 
-            self.client.send(&request).await?
+            self.client.call_api(&request).await?
         };
 
         Ok(Worker {
@@ -51,15 +58,15 @@ pub struct Contractor {
 }
 
 impl Contractor {
-    pub async fn contract(&self, timeout: u32, tags: &[&str]) -> anyhow::Result<Option<Job>> {
+    pub async fn contract(&self, timeout: Duration, tags: &[&str]) -> anyhow::Result<Option<Job>> {
         let contract = {
             let request = api::WorkerContractRequest::builder()
                 .worker_id(self.worker_id.as_str())
-                .timeout(timeout)
+                .timeout(timeout.as_secs())
                 .tags(tags)
                 .build();
 
-            self.client.send(&request).await?
+            self.client.call_api(&request).await?
         };
 
         let job_id = match contract.job_id {
