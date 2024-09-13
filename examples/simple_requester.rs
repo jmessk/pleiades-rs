@@ -14,8 +14,8 @@ async fn main() -> anyhow::Result<()> {
     // process using MEC-RM
     let lambda = create_lambda(&client).await?;
     let output = execute(&client, &lambda).await?;
-    
-    println!("output: {:?}", output);
+
+    println!("finished. output: {:?}", output);
 
     Ok(())
 }
