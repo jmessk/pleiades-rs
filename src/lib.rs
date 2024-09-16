@@ -8,6 +8,7 @@ mod worker;
 mod kv;
 
 mod feature;
+mod executor;
 
 pub use blob::Blob;
 pub use client::Client;
