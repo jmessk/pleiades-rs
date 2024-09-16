@@ -5,11 +5,11 @@ use pleiades::{Client, Job};
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::fmt()
-        .with_max_level(tracing::Level::ERROR)
+        .with_max_level(tracing::Level::DEBUG)
         .init();
 
     let client = Client::builder()
-        .host("http://pleiades.local/api/v0.5/")
+        .host("http://master.local/api/v0.5/")
         .build();
 
     // create worker

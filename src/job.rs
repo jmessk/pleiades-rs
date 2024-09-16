@@ -118,7 +118,7 @@ impl Job {
         let _update = {
             let request = api::JobUpdateRequest {
                 job_id: self.id.as_str().into(),
-                status: "Finished".into(),
+                status: "finished".into(),
                 data_id: output.id.as_str().into(),
             };
 
