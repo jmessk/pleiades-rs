@@ -57,12 +57,16 @@ pub struct Contractor {
 }
 
 impl Contractor {
-    pub async fn contract(&self, timeout: Duration, tags: &[&str]) -> anyhow::Result<Option<Job>> {
+    pub async fn contract(
+        &self,
+        timeout: Duration,
+        tags: Option<&[&str]>,
+    ) -> anyhow::Result<Option<Job>> {
         let contract = {
             let request = api::WorkerContractRequest {
                 worker_id: self.worker_id.as_str().into(),
                 timeout: timeout.as_secs(),
-                tags,
+                tags: tags.unwrap_or_default(),
             };
 
             self.client.call_api(&request).await?

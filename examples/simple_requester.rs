@@ -38,14 +38,14 @@ async fn main() -> anyhow::Result<()> {
     let input = client.blob().new(r#"{"a":3,"b":5}"#).await?;
 
     // create job
-    let job = lambda.invoke(input, &[]).await?;
+    let job = lambda.invoke(input, None).await?;
 
     // wait job finished
     let job = job.wait_finished(Duration::from_secs(10)).await?;
 
     // get output
     let output = job.output.fetch().await?;
-    println!("finished. output: {:?}", output);
+    println!("job finished. output: {:?}", output);
 
     Ok(())
 }

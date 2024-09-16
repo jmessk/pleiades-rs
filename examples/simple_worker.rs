@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     // wait for job
     println!("waiting for job. timeout: 10s");
 
-    while let Some(job) = contractor.contract(Duration::from_secs(10), &[]).await? {
+    while let Some(job) = contractor.contract(Duration::from_secs(10), None).await? {
         let client = client.clone();
 
         tokio::spawn(async move {
