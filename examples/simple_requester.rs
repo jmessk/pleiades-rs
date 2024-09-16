@@ -1,27 +1,24 @@
 use pleiades::{Client, Lambda};
 use std::time::Duration;
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+fn init() -> Client {
     tracing_subscriber::fmt::fmt()
         .with_max_level(tracing::Level::DEBUG)
         .init();
 
+    // create client
     let client = Client::builder()
         .host("http://master.local/api/v0.5/")
         .build();
 
-    // process using MEC-RM
-    let lambda = create_lambda(&client).await?;
-    let output = execute(&client, &lambda).await?;
-
-    println!("finished. output: {:?}", output);
-
-    Ok(())
+    client
 }
 
 async fn create_lambda(client: &Client) -> anyhow::Result<Lambda> {
-    let code = "function add(a, b) { return a + b; }";
+    let code = r"
+        function add(a, b) {
+            return a + b; 
+        }";
 
     // create lambda code
     let code = client.blob().new(code).await?;
@@ -32,8 +29,12 @@ async fn create_lambda(client: &Client) -> anyhow::Result<Lambda> {
     Ok(lambda)
 }
 
-async fn execute(client: &Client, lambda: &Lambda) -> anyhow::Result<bytes::Bytes> {
-    // create input
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let client = init();
+    let lambda = create_lambda(&client).await?;
+
+    // job input
     let input = client.blob().new(r#"{"a":3,"b":5}"#).await?;
 
     // create job
@@ -44,6 +45,7 @@ async fn execute(client: &Client, lambda: &Lambda) -> anyhow::Result<bytes::Byte
 
     // get output
     let output = job.output.fetch().await?;
+    println!("finished. output: {:?}", output);
 
-    Ok(output)
+    Ok(())
 }
