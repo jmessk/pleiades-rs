@@ -28,11 +28,12 @@ pub struct Lambda {
 }
 
 impl Lambda {
-    pub async fn invoke(&self, input: Blob) -> anyhow::Result<Job> {
-        let request = api::JobCreateRequest::builder()
-            .lambda_id(self.id.as_str())
-            .data_id(input.id.as_str())
-            .build();
+    pub async fn invoke(&self, input: Blob, tags: &[&str]) -> anyhow::Result<Job> {
+        let request = api::JobCreateRequest {
+            lambda_id: self.id.as_str().into(),
+            data_id: input.id.as_str().into(),
+            tags,
+        };
 
         let response = self.client.call_api(&request).await?;
 

@@ -116,11 +116,11 @@ impl Job {
 
     pub async fn finish(self, output: Blob) -> anyhow::Result<FinishedJob> {
         let _update = {
-            let request = api::JobUpdateRequest::builder()
-                .job_id(self.id.as_str())
-                .status("finished")
-                .data_id(output.id.as_str())
-                .build();
+            let request = api::JobUpdateRequest {
+                job_id: self.id.as_str().into(),
+                status: "Finished".into(),
+                data_id: output.id.as_str().into(),
+            };
 
             self.client.call_api(&request).await?
         };

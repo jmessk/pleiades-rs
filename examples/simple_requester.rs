@@ -34,10 +34,10 @@ async fn create_lambda(client: &Client) -> anyhow::Result<Lambda> {
 
 async fn execute(client: &Client, lambda: &Lambda) -> anyhow::Result<bytes::Bytes> {
     // create input
-    let input = client.blob().new(r#"{ "a": 3,"b": 5 }"#).await?;
+    let input = client.blob().new(r#"{"a":3,"b":5}"#).await?;
 
     // create job
-    let job = lambda.invoke(input).await?;
+    let job = lambda.invoke(input, &[]).await?;
 
     // wait job finished
     let job = job.wait_finished(Duration::from_secs(10)).await?;

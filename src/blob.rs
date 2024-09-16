@@ -40,9 +40,9 @@ pub struct Blob {
 
 impl Blob {
     pub async fn fetch(&self) -> anyhow::Result<Bytes> {
-        let request = api::DataDownloadRequest::builder()
-            .data_id(self.id.as_str())
-            .build();
+        let request = api::DataDownloadRequest {
+            data_id: self.id.as_str().into(),
+        };
 
         let response = self.client.call_api(&request).await?;
 
@@ -50,12 +50,12 @@ impl Blob {
     }
 
     pub async fn into_lambda(self, runtime: impl Into<Runtime>) -> anyhow::Result<Lambda> {
-        let runtime = runtime.into();
+        let runtime: Runtime = runtime.into();
 
-        let request = api::LambdaCreateRequest::builder()
-            .runtime(runtime.as_str())
-            .data_id(self.id.as_str())
-            .build();
+        let request = api::LambdaCreateRequest {
+            runtime: runtime.as_str().into(),
+            data_id: self.id.as_str().into(),
+        };
 
         let response = self.client.call_api(&request).await?;
 

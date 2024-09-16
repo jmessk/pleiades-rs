@@ -16,10 +16,9 @@ impl Selector {
     pub async fn new(self, runtimes: &[Runtime]) -> anyhow::Result<Worker> {
         let register = {
             let runtimes = runtimes.iter().map(|r| r.as_str()).collect::<Vec<_>>();
-
-            let request = api::WorkerRegisterRequest::builder()
-                .runtimes(&runtimes)
-                .build();
+            let request = api::WorkerRegisterRequest {
+                runtimes: &runtimes,
+            };
 
             self.client.call_api(&request).await?
         };
@@ -60,11 +59,11 @@ pub struct Contractor {
 impl Contractor {
     pub async fn contract(&self, timeout: Duration, tags: &[&str]) -> anyhow::Result<Option<Job>> {
         let contract = {
-            let request = api::WorkerContractRequest::builder()
-                .worker_id(self.worker_id.as_str())
-                .timeout(timeout.as_secs())
-                .tags(tags)
-                .build();
+            let request = api::WorkerContractRequest {
+                worker_id: self.worker_id.as_str().into(),
+                timeout: timeout.as_secs(),
+                tags,
+            };
 
             self.client.call_api(&request).await?
         };
