@@ -24,7 +24,7 @@ async fn create_lambda(client: &Client) -> anyhow::Result<Lambda> {
     let code = client.blob().new(code).await?;
 
     // create lambda with runtime
-    let lambda = code.into_lambda("mecrm-rs+example").await?;
+    let lambda = code.into_lambda("pleiades+example").await?;
 
     Ok(lambda)
 }

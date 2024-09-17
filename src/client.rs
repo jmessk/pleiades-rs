@@ -31,6 +31,10 @@ impl Client {
         request.send(&self.inner.client, &self.inner.host).await
     }
 
+    pub async fn ping(&self) -> anyhow::Result<()> {
+        Ok(())
+    }
+
     pub fn blob(&self) -> blob::Selector {
         blob::Selector {
             client: self.clone(),

@@ -13,7 +13,7 @@ async fn main() -> anyhow::Result<()> {
         .build();
 
     // create worker
-    let worker = client.worker().new(&["mecrm-rs+example".into()]).await?;
+    let worker = client.worker().new(&["pleiades+example".into()]).await?;
 
     // create contractor
     let contractor = worker.contractor();
