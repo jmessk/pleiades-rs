@@ -1,5 +1,5 @@
 [package]
-name = "library"
+name = "pleiades"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,3 +8,5 @@ pleiades-api = { path = "../pleiades-api" }
 
 anyhow ={ workspace = true }
 thiserror ={ workspace = true }
+bytes ={ workspace = true }
+tokio ={ workspace = true }

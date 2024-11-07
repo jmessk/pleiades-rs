@@ -1,16 +1,17 @@
+use pleiades_api::api;
+
 use crate::{
-    api,
     blob::Blob,
     client::Client,
     feature::{id::Id, runtime::Runtime},
     job::Job,
 };
 
-pub struct Selector {
-    pub(crate) client: Client,
+pub struct Selector<'a> {
+    pub(crate) client: &'a Client,
 }
 
-impl Selector {
+impl<'a> Selector<'a> {
     #[allow(clippy::wrong_self_convention)]
     pub async fn from_id(self, id: impl Into<Id>) -> anyhow::Result<Lambda> {
         let _ = id;
@@ -34,8 +35,7 @@ impl Lambda {
             data_id: input.id.as_str().into(),
             tags: tags.unwrap_or_default(),
         };
-
-        let response = self.client.call_api(&request).await?;
+        let response = self.client.inner.call_api(&request).await?;
 
         Ok(Job {
             client: self.client.clone(),

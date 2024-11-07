@@ -28,8 +28,6 @@ pub trait CoreResponse {
     ) -> impl std::future::Future<Output = Result<Self::Response>> + Send;
 }
 
-pub type Result<T> = std::result::Result<T, Error>;
-
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("failed to send request: {0}")]
@@ -44,3 +42,14 @@ pub enum Error {
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }
+
+impl Error {
+    pub fn parse(error: &str) -> Self {
+        match serde_json::from_str::<error::Response>(error) {
+            Ok(response) => Error::Response(response),
+            Err(e) => Error::Parse(e),
+        }
+    }
+}
+
+pub type Result<T> = std::result::Result<T, Error>;

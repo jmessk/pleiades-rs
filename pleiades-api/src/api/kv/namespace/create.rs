@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::api::{Error, error, CoreRequest, CoreResponse, Result};
+use crate::api::{Error, CoreRequest, CoreResponse, Result};
 
 ///
 #[derive(serde::Serialize, Debug, typed_builder::TypedBuilder)]
@@ -52,11 +52,7 @@ impl CoreResponse for Response {
             }
             Err(_) => {
                 tracing::error!("failed to create kv namespace: {}", body);
-
-                match serde_json::from_str::<error::Response>(&body) {
-                    Ok(response) => Err(Error::Response(response)),
-                    Err(e) => Err(Error::Parse(e)),
-                }
+                Err(Error::parse(&body))
             }
         }
     }

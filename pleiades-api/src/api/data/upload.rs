@@ -2,7 +2,7 @@ use bytes::Bytes;
 use reqwest::multipart::{Form, Part};
 use std::borrow::Cow;
 
-use crate::api::{error, CoreRequest, CoreResponse, Error, Result};
+use crate::api::{CoreRequest, CoreResponse, Error, Result};
 
 /// Request to upload byte data
 ///
@@ -35,14 +35,12 @@ impl CoreRequest for Request {
 
     async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<Response> {
         let endpoint = host.join(&self.endpoint()).unwrap();
-
         let form = {
             let part = Part::bytes(self.data.to_vec()).file_name("data");
             Form::new().part("file", part)
         };
 
         let request = client.post(endpoint).multipart(form).build()?;
-
         tracing::debug!("uploading data: {} bytes", self.data.len());
 
         let response = client.execute(request).await?;
@@ -72,16 +70,11 @@ impl CoreResponse for Response {
             Ok(response) => {
                 tracing::info!("data uploaded");
                 tracing::debug!("data uploaded: {:?}", response);
-
                 Ok(response)
             }
             Err(_) => {
                 tracing::error!("failed to upload data: {}", body);
-
-                match serde_json::from_str::<error::Response>(&body) {
-                    Ok(response) => Err(Error::Response(response)),
-                    Err(e) => Err(Error::Parse(e)),
-                }
+                Err(Error::parse(&body))
             }
         }
     }

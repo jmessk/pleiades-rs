@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::api::{Error, error, CoreRequest, CoreResponse, Result};
+use crate::api::{Error, CoreRequest, CoreResponse, Result};
 
 /// Request to create a job
 ///
@@ -83,11 +83,7 @@ impl CoreResponse for Response {
             }
             Err(_) => {
                 tracing::error!("failed to create job: {}", body);
-
-                match serde_json::from_str::<error::Response>(&body) {
-                    Ok(response) => Err(Error::Response(response)),
-                    Err(e) => Err(Error::Parse(e)),
-                }
+                Err(Error::parse(&body))
             }
         }
     }

@@ -1,17 +1,18 @@
 use std::time::Duration;
 
+use pleiades_api::api;
+
 use crate::{
-    api,
     client::Client,
     feature::{id::Id, runtime::Runtime},
     job::Job,
 };
 
-pub struct Selector {
-    pub(crate) client: Client,
+pub struct Selector<'a> {
+    pub(crate) client: &'a Client,
 }
 
-impl Selector {
+impl<'a> Selector<'a> {
     #[allow(clippy::new_ret_no_self, clippy::wrong_self_convention)]
     pub async fn new(self, runtimes: &[Runtime]) -> anyhow::Result<Worker> {
         let register = {
@@ -20,11 +21,11 @@ impl Selector {
                 runtimes: &runtimes,
             };
 
-            self.client.call_api(&request).await?
+            self.client.inner.call_api(&request).await?
         };
 
         Ok(Worker {
-            client: self.client,
+            client: self.client.clone(),
             id: register.worker_id.into(),
             runtimes: runtimes.to_vec(),
         })
@@ -69,7 +70,7 @@ impl Contractor {
                 tags: tags.unwrap_or_default(),
             };
 
-            self.client.call_api(&request).await?
+            self.client.inner.call_api(&request).await?
         };
 
         let job_id = match contract.job_id {

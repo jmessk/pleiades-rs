@@ -1,5 +1,5 @@
 [workspace]
-members = ["pleiades-api", "library"]
+members = ["pleiades-api", "pleiades"]
 
 [workspace.dependencies]
 anyhow = "1.0"

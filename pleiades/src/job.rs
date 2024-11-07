@@ -1,12 +1,14 @@
 use std::time::Duration;
 
-use crate::{api, blob::Blob, client::Client, feature::id::Id, lambda::Lambda};
+use pleiades_api::api;
 
-pub struct Selector {
-    pub(crate) client: Client,
+use crate::{blob::Blob, client::Client, feature::id::Id, lambda::Lambda};
+
+pub struct Selector<'a> {
+    pub(crate) client: &'a Client,
 }
 
-impl Selector {
+impl<'a> Selector<'a> {
     #[allow(clippy::wrong_self_convention)]
     pub async fn from_id(self, id: impl Into<Id>) -> anyhow::Result<Job> {
         let job_id: Id = id.into();
@@ -16,7 +18,7 @@ impl Selector {
                 .job_id(job_id.as_str())
                 .build();
 
-            self.client.call_api(&request).await?
+            self.client.inner.call_api(&request).await?
         };
 
         let lambda = Lambda {
@@ -29,7 +31,7 @@ impl Selector {
         let input = self.client.blob().from_id(info.input.data_id).await?;
 
         Ok(Job {
-            client: self.client,
+            client: self.client.clone(),
             id: job_id,
             lambda,
             input,
@@ -86,7 +88,7 @@ impl Job {
             .job_id(self.id.as_str())
             .build();
 
-        let response = self.client.call_api(&request).await?;
+        let response = self.client.inner.call_api(&request).await?;
 
         Ok(self.convert(response))
     }
@@ -102,7 +104,7 @@ impl Job {
             .timeout(timeout.as_secs())
             .build();
 
-        let response = self.client.call_api(&request).await?;
+        let response = self.client.inner.call_api(&request).await?;
 
         match self.convert(response) {
             Status::Finished(job) => Ok(job),
@@ -122,7 +124,7 @@ impl Job {
                 data_id: output.id.as_str().into(),
             };
 
-            self.client.call_api(&request).await?
+            self.client.inner.call_api(&request).await?
         };
 
         Ok(FinishedJob {
