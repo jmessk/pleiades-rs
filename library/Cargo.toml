@@ -1,0 +1,10 @@
+[package]
+name = "library"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+pleiades-api = { path = "../pleiades-api" }
+
+anyhow ={ workspace = true }
+thiserror ={ workspace = true }
