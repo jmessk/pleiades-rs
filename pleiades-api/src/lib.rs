@@ -1,2 +1,4 @@
 pub mod api;
-pub mod client;
+mod client;
+
+pub use client::Client;

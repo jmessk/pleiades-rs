@@ -1,8 +1,8 @@
 use crate::api;
 
 pub struct Client {
-    client: reqwest::Client,
-    base_url: url::Url,
+    pub client: reqwest::Client,
+    pub base_url: url::Url,
 }
 
 impl Client {
@@ -10,7 +10,7 @@ impl Client {
         request.send(&self.client, &self.base_url).await
     }
 
-    pub async fn ping(&self) {
-        
+    pub async fn ping(&self) -> api::Result<api::ping::Response> {
+        self.call_api(&api::ping::Request {}).await
     }
 }

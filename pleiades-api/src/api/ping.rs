@@ -2,7 +2,6 @@ use std::borrow::Cow;
 
 use crate::api::{error, CoreRequest, CoreResponse, Error, Result};
 
-#[derive(serde::Serialize, Debug)]
 pub struct Request;
 
 impl CoreRequest for Request {
@@ -14,9 +13,9 @@ impl CoreRequest for Request {
 
     async fn send(&self, client: &reqwest::Client, host: &url::Url) -> Result<Response> {
         let endpoint = host.join(&self.endpoint()).unwrap();
-        let request = client.post(endpoint).json(self).build()?;
+        let request = client.get(endpoint).build()?;
 
-        tracing::debug!("creating lambda: {:?}", self);
+        tracing::debug!("sending ping");
 
         let response = client.execute(request).await?;
         Response::from_response(response).await
@@ -28,10 +27,7 @@ impl CoreRequest for Request {
 pub struct Response {
     pub code: u32,
     pub status: String,
-
-    /// created lambda ID
-    #[serde(rename = "id")]
-    pub lambda_id: String,
+    pub message: String,
 }
 
 impl CoreResponse for Response {
@@ -42,11 +38,11 @@ impl CoreResponse for Response {
 
         match serde_json::from_str::<Response>(&body) {
             Ok(response) => {
-                tracing::debug!("lambda created: {}", body);
+                tracing::debug!("receive ping: {}", body);
                 Ok(response)
             }
             Err(_) => {
-                tracing::error!("failed to create lambda: {}", body);
+                tracing::error!("failed to receive ping: {}", body);
 
                 match serde_json::from_str::<error::Response>(&body) {
                     Ok(response) => Err(Error::Response(response)),
