@@ -1,4 +1,4 @@
-# mecrm-rs
+# pleiades-rs
 
 Pleiades client library for Rust.
 
