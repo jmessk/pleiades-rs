@@ -1,6 +1,11 @@
 # mecrm-rs
 
-MEC-RM client library for Rust.
+Pleiades client library for Rust.
+
+## Features
+
+- **pleiades-api** - HTTP client library for [Pleiades Core](https://git.short-circuits.org/pleiades/pleiades-core) API
+- **pleiades** - Wrapper library of pleiades-api for easy to use (now alpha)
 
 ## Usage
 
