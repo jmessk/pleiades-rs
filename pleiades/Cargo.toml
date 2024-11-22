@@ -5,8 +5,7 @@ edition = "2021"
 
 [dependencies]
 pleiades-api = { path = "../pleiades-api" }
-
-anyhow ={ workspace = true }
-thiserror ={ workspace = true }
-bytes ={ workspace = true }
-tokio ={ workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+bytes = { workspace = true }
+tokio = { workspace = true }

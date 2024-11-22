@@ -1,16 +1,9 @@
 use std::time::Duration;
-
 use pleiades::{Client, Job};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt::fmt()
-        .with_max_level(tracing::Level::DEBUG)
-        .init();
-
-    let client = Client::builder()
-        .host("http://master.local/api/v0.5/")
-        .build();
+    let client = Client::default();
 
     // create worker
     let worker = client.worker().new(&["pleiades+example".into()]).await?;
@@ -40,10 +33,10 @@ async fn execute(client: &Client, job: Job) -> anyhow::Result<()> {
     let input = job.input.fetch().await?;
 
     // process input
-    println!("input: {:?}", input);
+    println!("input: {input:?}");
 
     // create output
-    let output = client.blob().new(r#"{ "output": 8 }"#).await?;
+    let output = client.blob().new(r#"{"output":8}"#).await?;
 
     // finish job
     job.finish(output).await?;

@@ -1,15 +1,8 @@
-use pleiades::api;
-use pleiades::Client;
+use pleiades_api::{api, Client};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt::fmt()
-        .with_max_level(tracing::Level::ERROR)
-        .init();
-
-    let client = Client::builder()
-        .host("http://pleiades.local/api/v0.5/")
-        .build();
+    let client = Client::default();
 
     let namespace = {
         let request = api::kv::namespace::create::Request::builder()
