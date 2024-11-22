@@ -11,7 +11,7 @@ Pleiades client library for Rust.
 
 ### Requester
 
-Refer to [simple_requester.rs](./examples/simple_requester.rs).
+Refer to [simple_requester.rs](./pleiades/examples/simple_requester.rs).
 
 ```rust:simple_requester.rs
 let input = client.blob().new(r#"{"a":3,"b":5}"#).await?;
