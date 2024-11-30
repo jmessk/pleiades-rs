@@ -7,7 +7,7 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(base_url: &str) -> Result<Self, url::ParseError> {
+    pub fn try_new(base_url: &str) -> Result<Self, url::ParseError> {
         Ok(Self {
             client: reqwest::Client::new(),
             base_url: url::Url::parse(base_url)?,
