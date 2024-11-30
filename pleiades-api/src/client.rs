@@ -7,6 +7,13 @@ pub struct Client {
 }
 
 impl Client {
+    pub fn new(base_url: &str) -> Result<Self, url::ParseError> {
+        Ok(Self {
+            client: reqwest::Client::new(),
+            base_url: url::Url::parse(base_url)?,
+        })
+    }
+
     pub async fn call_api<T: api::CoreRequest>(&self, request: &T) -> api::Result<T::Response> {
         request.send(&self.client, &self.base_url).await
     }
