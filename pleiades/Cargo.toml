@@ -9,3 +9,4 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 bytes = { workspace = true }
 tokio = { workspace = true }
+url = { workspace = true }

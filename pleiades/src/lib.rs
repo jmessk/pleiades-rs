@@ -6,9 +6,9 @@ mod kv;
 mod lambda;
 mod worker;
 
-mod feature;
+mod error;
 
-// use pleiades_api::api;
+mod feature;
 
 pub use blob::Blob;
 pub use client::Client;
@@ -18,3 +18,5 @@ pub use worker::{
     executor,
     worker::{Contractor, Worker},
 };
+
+pub use error::PleiadesError;

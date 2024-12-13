@@ -8,8 +8,8 @@ pub mod worker;
 
 use std::borrow::Cow;
 
-pub trait CoreRequest {
-    type Response: CoreResponse;
+pub trait ApiRequest {
+    type Response: ApiResponse;
 
     fn endpoint(&self) -> Cow<'static, str>;
 
@@ -20,8 +20,8 @@ pub trait CoreRequest {
     ) -> impl std::future::Future<Output = Result<Self::Response>> + Send;
 }
 
-pub trait CoreResponse {
-    type Response: CoreResponse;
+pub trait ApiResponse {
+    type Response: ApiResponse;
 
     fn from_response(
         response: reqwest::Response,
@@ -29,7 +29,7 @@ pub trait CoreResponse {
 }
 
 #[derive(thiserror::Error, Debug)]
-pub enum Error {
+pub enum ApiError {
     #[error("failed to send request: {0}")]
     Request(#[from] reqwest::Error),
 
@@ -43,13 +43,13 @@ pub enum Error {
     Other(#[from] anyhow::Error),
 }
 
-impl Error {
+impl ApiError {
     pub fn parse(error: &str) -> Self {
         match serde_json::from_str::<error::Response>(error) {
-            Ok(response) => Error::Response(response),
-            Err(e) => Error::Parse(e),
+            Ok(response) => ApiError::Response(response),
+            Err(e) => ApiError::Parse(e),
         }
     }
 }
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, ApiError>;

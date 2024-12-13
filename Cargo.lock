@@ -777,6 +777,7 @@ dependencies = [
  "pleiades-api",
  "thiserror",
  "tokio",
+ "url",
 ]
 
 [[package]]

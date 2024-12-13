@@ -2,7 +2,7 @@ use bytes::Bytes;
 use reqwest::multipart::{Form, Part};
 use std::borrow::Cow;
 
-use crate::api::{CoreRequest, CoreResponse, Error, Result};
+use crate::api::{ApiRequest, ApiResponse, ApiError, Result};
 
 /// Request to upload byte data
 ///
@@ -26,7 +26,7 @@ pub struct Request {
     pub data: Bytes,
 }
 
-impl CoreRequest for Request {
+impl ApiRequest for Request {
     type Response = Response;
 
     fn endpoint(&self) -> Cow<'static, str> {
@@ -60,7 +60,7 @@ pub struct Response {
     pub checksum: String,
 }
 
-impl CoreResponse for Response {
+impl ApiResponse for Response {
     type Response = Response;
 
     async fn from_response(response: reqwest::Response) -> Result<Response> {
@@ -74,7 +74,7 @@ impl CoreResponse for Response {
             }
             Err(_) => {
                 tracing::error!("failed to upload data: {}", body);
-                Err(Error::parse(&body))
+                Err(ApiError::parse(&body))
             }
         }
     }

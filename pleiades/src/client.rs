@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{blob, job, lambda, worker};
+use crate::{blob, job, lambda, worker, PleiadesError};
 
 #[derive(Debug, Clone, Default)]
 pub struct Client {
@@ -8,36 +8,35 @@ pub struct Client {
 }
 
 impl Client {
-    // pub fn builder() -> ClientBuilder {
-    //     ClientBuilder::new()
-    // }
+    pub fn try_new(base_url: &str) -> Result<Self, url::ParseError> {
+        let inner = pleiades_api::Client::try_new(base_url)?;
 
-    // pub async fn ping(&self) -> anyhow::Result<()> {
-    //     self.inner.ping().await.with_context(|| "failed to ping")
-    // }
+        Ok(Self {
+            inner: Arc::new(inner),
+        })
+    }
+
+    pub async fn ping(&self) -> Result<(), PleiadesError> {
+        let pong = self.inner.ping().await?;
+        println!("ping: {:?}", pong);
+
+        Ok(())
+    }
 
     pub fn blob(&self) -> blob::Selector {
-        blob::Selector {
-            client: self,
-        }
+        blob::Selector { client: self }
     }
 
     pub fn lambda(&self) -> lambda::Selector {
-        lambda::Selector {
-            client: self,
-        }
+        lambda::Selector { client: self }
     }
 
     pub fn worker(&self) -> worker::Selector {
-        worker::Selector {
-            client: self,
-        }
+        worker::Selector { client: self }
     }
 
     pub fn job(&self) -> job::Selector {
-        job::Selector {
-            client: self,
-        }
+        job::Selector { client: self }
     }
 }
 

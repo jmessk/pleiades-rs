@@ -1,4 +1,4 @@
-use crate::api::{Error, CoreResponse, Result};
+use crate::api::{ApiError, ApiResponse, Result};
 
 #[derive(serde::Deserialize, Debug)]
 pub struct Response {
@@ -7,13 +7,13 @@ pub struct Response {
     pub message: String,
 }
 
-impl CoreResponse for Response {
+impl ApiResponse for Response {
     type Response = Response;
 
     async fn from_response(response: reqwest::Response) -> Result<Response> {
         match response.json::<Response>().await {
             Ok(response) => Ok(response),
-            Err(e) => Err(Error::Request(e)),
+            Err(e) => Err(ApiError::Request(e)),
         }
         // Ok(response.json::<ErrorResponse>().await.unwrap())
     }

@@ -1,10 +1,10 @@
 use std::borrow::Cow;
 
-use crate::api::{error, CoreRequest, CoreResponse, Error, Result};
+use crate::api::{error, ApiRequest, ApiResponse, ApiError, Result};
 
 pub struct Request;
 
-impl CoreRequest for Request {
+impl ApiRequest for Request {
     type Response = Response;
 
     fn endpoint(&self) -> Cow<'static, str> {
@@ -30,7 +30,7 @@ pub struct Response {
     pub message: String,
 }
 
-impl CoreResponse for Response {
+impl ApiResponse for Response {
     type Response = Response;
 
     async fn from_response(response: reqwest::Response) -> Result<Response> {
@@ -45,8 +45,8 @@ impl CoreResponse for Response {
                 tracing::error!("failed to receive ping: {}", body);
 
                 match serde_json::from_str::<error::Response>(&body) {
-                    Ok(response) => Err(Error::Response(response)),
-                    Err(e) => Err(Error::Parse(e)),
+                    Ok(response) => Err(ApiError::Response(response)),
+                    Err(e) => Err(ApiError::Parse(e)),
                 }
             }
         }

@@ -1,7 +1,7 @@
 use bytes::Bytes;
 use std::borrow::Cow;
 
-use crate::api::{Error, CoreRequest, CoreResponse, Result, error};
+use crate::api::{ApiError, ApiRequest, ApiResponse, Result, error};
 
 /// Request to download byte data
 ///
@@ -25,7 +25,7 @@ pub struct Request<'a> {
     pub data_id: Cow<'a, str>,
 }
 
-impl<'a> CoreRequest for Request<'a> {
+impl<'a> ApiRequest for Request<'a> {
     type Response = Response;
 
     fn endpoint(&self) -> Cow<'static, str> {
@@ -54,7 +54,7 @@ pub struct Response {
     pub data: Bytes,
 }
 
-impl CoreResponse for Response {
+impl ApiResponse for Response {
     type Response = Response;
 
     async fn from_response(response: reqwest::Response) -> Result<Response> {
@@ -64,7 +64,7 @@ impl CoreResponse for Response {
             let error = response.bytes().await?;
             tracing::error!("failed to download data: {:?}", error);
 
-            return Err(Error::Other(anyhow::anyhow!("failed to read content type")));
+            return Err(ApiError::Other(anyhow::anyhow!("failed to read content type")));
         }
 
         match content_type.unwrap().to_str().unwrap() {
@@ -82,8 +82,8 @@ impl CoreResponse for Response {
                 let json = serde_json::from_str::<error::Response>(&body);
 
                 match json {
-                    Ok(response) => Err(Error::Response(response)),
-                    Err(e) => Err(Error::Parse(e)),
+                    Ok(response) => Err(ApiError::Response(response)),
+                    Err(e) => Err(ApiError::Parse(e)),
                 }
             }
 
@@ -92,7 +92,7 @@ impl CoreResponse for Response {
                 let error = response.bytes().await?;
                 tracing::error!("failed to download data: {:?}", error);
 
-                Err(Error::Other(anyhow::anyhow!("failed to download data")))
+                Err(ApiError::Other(anyhow::anyhow!("failed to download data")))
             }
         }
     }

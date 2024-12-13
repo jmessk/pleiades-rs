@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::api::{Error, CoreRequest, CoreResponse, Result};
+use crate::api::{ApiError, ApiRequest, ApiResponse, Result};
 
 /// Request to update a job
 ///
@@ -34,7 +34,7 @@ pub struct Request<'a> {
     pub status: Cow<'a, str>,
 }
 
-impl<'a> CoreRequest for Request<'a> {
+impl<'a> ApiRequest for Request<'a> {
     type Response = Response;
 
     fn endpoint(&self) -> Cow<'static, str> {
@@ -60,7 +60,7 @@ pub struct Response {
     pub message: String,
 }
 
-impl CoreResponse for Response {
+impl ApiResponse for Response {
     type Response = Response;
 
     async fn from_response(response: reqwest::Response) -> Result<Response> {
@@ -73,7 +73,7 @@ impl CoreResponse for Response {
             }
             Err(_) => {
                 tracing::error!("failed to update job status: {}", body);
-                Err(Error::parse(&body))
+                Err(ApiError::parse(&body))
             }
         }
     }

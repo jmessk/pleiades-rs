@@ -16,7 +16,7 @@ impl Client {
         })
     }
 
-    pub async fn call_api<T: api::CoreRequest>(&self, request: &T) -> api::Result<T::Response> {
+    pub async fn call_api<T: api::ApiRequest>(&self, request: &T) -> api::Result<T::Response> {
         request.send(&self.client, &self.base_url).await
     }
 
