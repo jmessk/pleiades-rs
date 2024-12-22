@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 #[derive(Debug, Clone)]
-pub struct Id(Cow<'static, str>);
+pub struct Id(pub Cow<'static, str>);
 
 impl Id {
     pub fn as_str(&self) -> &str {

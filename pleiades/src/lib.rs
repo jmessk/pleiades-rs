@@ -8,7 +8,7 @@ mod worker;
 
 mod error;
 
-mod feature;
+pub mod feature;
 
 pub use blob::Blob;
 pub use client::Client;
