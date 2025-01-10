@@ -38,7 +38,7 @@ impl ApiResponse for Response {
 
         match serde_json::from_str::<Response>(&body) {
             Ok(response) => {
-                tracing::debug!("receive ping: {}", body);
+                tracing::trace!("receive ping: {}", body);
                 Ok(response)
             }
             Err(_) => {

@@ -2,10 +2,8 @@ use std::borrow::Cow;
 
 use crate::api::{ApiError, ApiRequest, ApiResponse, Result};
 
-///
 #[derive(Debug, typed_builder::TypedBuilder)]
 pub struct Request<'a> {
-    ///
     #[builder(setter(into))]
     pub namespace_id: Cow<'a, str>,
 
