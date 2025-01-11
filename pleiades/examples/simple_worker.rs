@@ -36,7 +36,7 @@ async fn execute(client: &Client, job: Job) -> anyhow::Result<()> {
     println!("input: {input:?}");
 
     // create output
-    let output = client.blob().new(r#"{"output":8}"#).await?;
+    let output = client.blob().create(r#"{"output":8}"#).await?;
 
     // finish job
     job.finish(output).await?;

@@ -1,7 +1,7 @@
 use pleiades_api::api;
 
 use crate::{
-    blob::Blob,
+    blob::RemoteBlob,
     client::Client,
     feature::{id::Id, runtime::Runtime},
     job::Job,
@@ -25,11 +25,11 @@ pub struct Lambda {
     pub(crate) client: Client,
     pub id: Id,
     pub runtime: Runtime,
-    pub code: Blob,
+    pub code: RemoteBlob,
 }
 
 impl Lambda {
-    pub async fn invoke(&self, input: Blob, tags: Option<&[&str]>) -> anyhow::Result<Job> {
+    pub async fn invoke(&self, input: RemoteBlob, tags: Option<&[&str]>) -> anyhow::Result<Job> {
         let request = api::job::create::Request {
             lambda_id: self.id.as_str().into(),
             data_id: input.id.as_str().into(),

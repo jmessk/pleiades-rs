@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use pleiades_api::api;
 
-use crate::{blob::Blob, client::Client, feature::id::Id, lambda::Lambda};
+use crate::{blob::RemoteBlob, client::Client, feature::id::Id, lambda::Lambda};
 
 pub struct Selector<'a> {
     pub(crate) client: &'a Client,
@@ -52,7 +52,7 @@ pub struct Job {
     pub(crate) client: Client,
     pub id: Id,
     pub lambda: Lambda,
-    pub input: Blob,
+    pub input: RemoteBlob,
 }
 
 impl Job {
@@ -66,7 +66,7 @@ impl Job {
             "Finished" => {
                 let output_id = response.output.unwrap().data_id;
 
-                let output = Blob {
+                let output = RemoteBlob {
                     client: self.client.clone(),
                     id: output_id.into(),
                 };
@@ -116,7 +116,7 @@ impl Job {
         todo!()
     }
 
-    pub async fn finish(self, output: Blob) -> anyhow::Result<FinishedJob> {
+    pub async fn finish(self, output: RemoteBlob) -> anyhow::Result<FinishedJob> {
         let _update = {
             let request = api::job::update::Request {
                 job_id: self.id.as_str().into(),
@@ -139,6 +139,6 @@ impl Job {
 pub struct FinishedJob {
     pub id: Id,
     pub lambda: Lambda,
-    pub input: Blob,
-    pub output: Blob,
+    pub input: RemoteBlob,
+    pub output: RemoteBlob,
 }

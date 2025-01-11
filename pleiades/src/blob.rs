@@ -13,20 +13,19 @@ pub struct Selector<'a> {
 }
 
 impl<'a> Selector<'a> {
-    #[allow(clippy::new_ret_no_self, clippy::wrong_self_convention)]
-    pub async fn new(self, data: impl Into<Bytes>) -> anyhow::Result<Blob> {
+    pub async fn create(self, data: impl Into<Bytes>) -> anyhow::Result<RemoteBlob> {
         let request = api::data::upload::Request { data: data.into() };
         let response = self.client.inner.call_api(&request).await?;
 
-        Ok(Blob {
+        Ok(RemoteBlob {
             client: self.client.clone(),
             id: response.data_id.into(),
         })
     }
 
     #[allow(clippy::wrong_self_convention)]
-    pub async fn from_id(self, id: impl Into<Id>) -> anyhow::Result<Blob> {
-        Ok(Blob {
+    pub async fn from_id(self, id: impl Into<Id>) -> anyhow::Result<RemoteBlob> {
+        Ok(RemoteBlob {
             client: self.client.clone(),
             id: id.into(),
         })
@@ -34,12 +33,12 @@ impl<'a> Selector<'a> {
 }
 
 #[derive(Debug, Clone)]
-pub struct Blob {
+pub struct RemoteBlob {
     pub(crate) client: Client,
     pub id: Id,
 }
 
-impl Blob {
+impl RemoteBlob {
     pub async fn fetch(&self) -> anyhow::Result<Bytes> {
         let request = api::data::download::Request {
             data_id: self.id.as_str().into(),
@@ -66,3 +65,11 @@ impl Blob {
         })
     }
 }
+
+pub struct LocalBlob {
+    pub(crate) client: Client,
+    pub id: Id,
+    pub data: Bytes,
+}
+
+

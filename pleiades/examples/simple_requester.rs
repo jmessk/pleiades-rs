@@ -7,7 +7,7 @@ async fn main() -> anyhow::Result<()> {
     let lambda = create_lambda(&client).await?;
 
     // job input
-    let input = client.blob().new(r#"{"a":3,"b":5}"#).await?;
+    let input = client.blob().create(r#"{"a":3,"b":5}"#).await?;
 
     // create job
     let job = lambda.invoke(input, None).await?;
@@ -30,7 +30,7 @@ function add(a, b) {
 ";
 
     // create lambda code
-    let code = client.blob().new(code).await?;
+    let code = client.blob().create(code).await?;
 
     // create lambda with runtime
     let lambda = code.into_lambda("pleiades+example").await?;

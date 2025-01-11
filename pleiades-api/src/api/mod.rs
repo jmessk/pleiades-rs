@@ -36,7 +36,7 @@ pub enum ApiError {
     #[error("failed to parse response: {0}")]
     Parse(#[from] serde_json::Error),
 
-    #[error("MEC-RM internal error: {0}")]
+    #[error("Pleiades internal error: {0}")]
     Response(error::Response),
 
     #[error(transparent)]

@@ -10,7 +10,7 @@ mod error;
 
 pub mod feature;
 
-pub use blob::Blob;
+pub use blob::RemoteBlob;
 pub use client::Client;
 pub use job::{FinishedJob, Job, Status};
 pub use lambda::Lambda;

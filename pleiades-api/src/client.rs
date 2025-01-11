@@ -29,7 +29,7 @@ impl Default for Client {
     fn default() -> Self {
         Self {
             client: reqwest::Client::new(),
-            base_url: url::Url::parse("https://mecrm.dolylab.cc/api/v0.5/").unwrap(),
+            base_url: url::Url::parse("https://pleiades.cloud/api/v0.5/").unwrap(),
         }
     }
 }
