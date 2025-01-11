@@ -3,9 +3,7 @@ use std::time::Duration;
 use pleiades_api::api;
 
 use crate::{
-    client::Client,
-    feature::{id::Id, runtime::Runtime},
-    job::Job,
+    blob::Blob, client::Client, feature::{id::Id, runtime::Runtime}, job::Job
 };
 
 pub struct Selector<'a> {
@@ -62,7 +60,7 @@ impl Contractor {
         &self,
         timeout: Duration,
         tags: Option<&[&str]>,
-    ) -> anyhow::Result<Option<Job>> {
+    ) -> anyhow::Result<Option<Job<impl Blob>>> {
         let contract = {
             let request = api::worker::contract::Request {
                 worker_id: self.worker_id.as_str().into(),

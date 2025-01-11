@@ -1,8 +1,12 @@
 use std::time::Duration;
-
 use pleiades_api::api;
 
-use crate::{blob::RemoteBlob, client::Client, feature::id::Id, lambda::Lambda};
+use crate::{
+    blob::{Blob, RemoteBlob},
+    client::Client,
+    feature::id::Id,
+    lambda::Lambda,
+};
 
 pub struct Selector<'a> {
     pub(crate) client: &'a Client,
@@ -10,7 +14,7 @@ pub struct Selector<'a> {
 
 impl<'a> Selector<'a> {
     #[allow(clippy::wrong_self_convention)]
-    pub async fn from_id(self, id: impl Into<Id>) -> anyhow::Result<Job> {
+    pub async fn from_id(self, id: impl Into<Id>) -> anyhow::Result<Job<impl Blob>> {
         let job_id: Id = id.into();
 
         let info = {
@@ -39,26 +43,26 @@ impl<'a> Selector<'a> {
     }
 }
 
-pub enum Status {
+pub enum Status<B: Blob> {
     PreAssigned,
     Enqueued,
     Running,
-    Finished(FinishedJob),
+    Finished(FinishedJob<B>),
     Cancelled,
     Unknown(String),
 }
 
-pub struct Job {
+pub struct Job<B: Blob> {
     pub(crate) client: Client,
     pub id: Id,
-    pub lambda: Lambda,
-    pub input: RemoteBlob,
+    pub lambda: Lambda<B>,
+    pub input: B,
 }
 
-impl Job {
+impl<B: Blob> Job<B> {
     // const DEFAULT_TIMEOUT: u32 = 20;
 
-    fn convert(&self, response: api::job::info::Response) -> Status {
+    fn convert(&self, response: api::job::info::Response) -> Status<B> {
         match response.job_status.as_str() {
             "PreAssigned" => Status::PreAssigned,
             "Running" => Status::Running,
@@ -83,7 +87,7 @@ impl Job {
         }
     }
 
-    pub async fn status(&self) -> anyhow::Result<Status> {
+    pub async fn status(&self) -> anyhow::Result<Status<B>> {
         let request = api::job::info::Request::builder()
             .job_id(self.id.as_str())
             .build();
@@ -97,7 +101,7 @@ impl Job {
     //     todo!()
     // }
 
-    pub async fn wait_finished(&self, timeout: Duration) -> anyhow::Result<FinishedJob> {
+    pub async fn wait_finished(&self, timeout: Duration) -> anyhow::Result<FinishedJob<B>> {
         let request = api::job::info::Request::builder()
             .job_id(self.id.as_str())
             .except("Finished")
@@ -116,7 +120,7 @@ impl Job {
         todo!()
     }
 
-    pub async fn finish(self, output: RemoteBlob) -> anyhow::Result<FinishedJob> {
+    pub async fn finish(self, output: RemoteBlob) -> anyhow::Result<FinishedJob<B>> {
         let _update = {
             let request = api::job::update::Request {
                 job_id: self.id.as_str().into(),
@@ -136,9 +140,9 @@ impl Job {
     }
 }
 
-pub struct FinishedJob {
+pub struct FinishedJob<B: Blob> {
     pub id: Id,
-    pub lambda: Lambda,
-    pub input: RemoteBlob,
+    pub lambda: Lambda<B>,
+    pub input: B,
     pub output: RemoteBlob,
 }

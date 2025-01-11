@@ -1,10 +1,21 @@
-use pleiades::{Client, Lambda};
+use pleiades::Client;
 use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let client = Client::default();
-    let lambda = create_lambda(&client).await?;
+
+    let code = r"
+        function add(a, b) {
+            return a + b; 
+        }
+    ";
+
+    // create lambda code
+    let code = client.blob().create(code).await?;
+
+    // create lambda with runtime
+    let lambda = code.into_lambda("pleiades+example").await?;
 
     // job input
     let input = client.blob().create(r#"{"a":3,"b":5}"#).await?;
@@ -20,20 +31,4 @@ async fn main() -> anyhow::Result<()> {
     println!("job finished. output: {output:?}");
 
     Ok(())
-}
-
-async fn create_lambda(client: &Client) -> anyhow::Result<Lambda> {
-    let code = r"
-function add(a, b) {
-    return a + b; 
-}
-";
-
-    // create lambda code
-    let code = client.blob().create(code).await?;
-
-    // create lambda with runtime
-    let lambda = code.into_lambda("pleiades+example").await?;
-
-    Ok(lambda)
 }

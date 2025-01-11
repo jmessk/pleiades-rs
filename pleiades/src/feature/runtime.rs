@@ -78,16 +78,8 @@ impl From<String> for Runtime {
     }
 }
 
-// impl Runtime {
-//     pub fn base(&self) -> &str {
-//         &self.base
-//     }
-
-//     pub fn features(&self) -> &Vec<Cow<'static, str>> {
-//         &self.features
-//     }
-
-//     pub fn full(&self) -> String {
-//         format!("{}+{}", self.base, self.features.join("+"))
-//     }
-// }
+impl AsRef<str> for Runtime {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
