@@ -13,7 +13,7 @@ Pleiades client library for Rust.
 
 Refer to [simple_requester.rs](./pleiades/examples/simple_requester.rs).
 
-```rust:simple_requester.rs
+```rust
 let input = client.blob().new(r#"{"a":3,"b":5}"#).await?;
 
 // create job
